@@ -9,23 +9,23 @@ import { useRef, useState } from "react"
 type PhotosFormProps = {
     photoList: Photo[],
     serverError: string | null,
-    handleGetMyPhotos: ()=>Promise<void>,
     handleAddPhoto: (photo_input: File)=>Promise<void>,
     handleAsAvatar: (photo_id: number)=>Promise<void>,
     handlePatchPhoto: (photo_id: number, photo_input: File)=>Promise<void>,
     handleDeletePhoto: (photo_id: number)=>Promise<void>
-    onFinish: ()=>void
+    onFinish?: ()=>void,
+    showFinish: boolean
 }
 
 function PhotosForm({
     photoList,
     serverError,
-    handleGetMyPhotos,
     handleAddPhoto,
     handleAsAvatar,
     handlePatchPhoto,
     handleDeletePhoto,
     onFinish,
+    showFinish,
 } : PhotosFormProps) {
     const [ modify, setModify ] = useState(false)
     const [ photoId, setPhotoId] = useState<number | null>(null)
@@ -120,9 +120,11 @@ function PhotosForm({
                         </div>
                     ))
                 )}
-                <Field>
-                    <Button onClick={()=>onFinish()}>Finish</Button>
-                </Field>
+                {showFinish && onFinish && (
+                    <Field>
+                        <Button onClick={()=>onFinish()}>Finish</Button>
+                    </Field>
+                )}
             </FieldGroup>
         </>
     )

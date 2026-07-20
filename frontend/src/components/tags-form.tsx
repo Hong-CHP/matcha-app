@@ -9,11 +9,11 @@ type TagsFormProps = {
     tagsSearchList: Tag[],
     tagsList: Tag[],
     serverError: string | null,
-    handleMyTags: ()=>Promise<void>,
     handleInput: (value: string)=>Promise<void>,
     handleAddTag: (tag_name: string)=>Promise<void>,
     handleDeleteTag: (tag_id: number)=>Promise<void>,
-    nextStep: ()=>void
+    nextStep?: ()=>void,
+    showNextStep: boolean
 }
 
 function TagsForm({
@@ -21,11 +21,11 @@ function TagsForm({
     tagsSearchList,
     tagsList,
     serverError,
-    handleMyTags,
     handleInput,
     handleAddTag,
     handleDeleteTag,
     nextStep,
+    showNextStep,
 }: TagsFormProps) {
     return (
         <>
@@ -56,9 +56,11 @@ function TagsForm({
                     )}
                 </Field>
                 {serverError && <FieldError>{serverError}</FieldError>}
-                <Field>
-                    <Button onClick={()=>nextStep()}>Next</Button>
-                </Field>
+                {showNextStep && nextStep && (
+                    <Field>
+                        <Button onClick={()=>nextStep()}>Next</Button>
+                    </Field>
+                )}
             </FieldGroup>          
         </>
     )

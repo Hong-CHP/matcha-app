@@ -90,6 +90,7 @@ export function ProfileCompletePage() {
             handleAddTag = {handleAddTag}
             handleDeleteTag = {handleDeleteTag}
             nextStep = {goPhotos}
+            showNextStep = {true}
           />
         )}
         {completeProfileStep == "photos" && (
@@ -102,6 +103,7 @@ export function ProfileCompletePage() {
             handlePatchPhoto = {handlePatchPhoto}
             handleDeletePhoto = {handleDeletePhoto}
             onFinish = {handleFinished}
+            showFinish = {true}
           />
         )}
       </CardContent>
