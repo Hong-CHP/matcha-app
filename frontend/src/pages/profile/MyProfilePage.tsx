@@ -34,8 +34,7 @@ import ProfileTab from "@/components/ProfileTab"
 import type { UserProfile } from "@/types/user"
 
 function MyProfilePage() {
-    const { accessToken } = useAuth()
-    const { profile } = useUserProfile()
+    const { profile, fetchProfile } = useUserProfile()
 
     return (
         <>
@@ -60,130 +59,131 @@ function MyProfilePage() {
             <div>
                 <p>Popularity</p>
             </div>
-            <ProfileTabs profile={profile!}/>
+            <ProfileTabs profile={profile!} onSaved={fetchProfile}/>
         </>
     )
 }
 
-export function ProfileTabs({profile} : {profile : UserProfile}) {
-  return (
-    <Tabs defaultValue="Profile" className="w-[400px]">
-        <TabsList>
-            <TabsTrigger value="Profile">Profile</TabsTrigger>
-            <TabsTrigger value="account">account</TabsTrigger>
-            <TabsTrigger value="notifications">notifications</TabsTrigger>
-        </TabsList>
-        <TabsContent value="Profile">
-            <ProfileTab profile={profile}/>
-        </TabsContent>
-        <TabsContent value="account">
-        <Card>
-          <CardHeader>
-            <CardTitle>account</CardTitle>
-            <CardDescription>
-              These are your personal secret informations.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            <form>
-                <FieldGroup>
-                    <Field>
-                        <FieldLabel htmlFor="usernamer">Username</FieldLabel>
-                        <Input id="username" name="username" type="text" disabled />
-                        <button>{edit}</button>
-                    </Field>
-                    <Field>
-                        <FieldLabel htmlFor="user-email">Email address</FieldLabel>
-                        <Input id="user-email" name="user-email" type="email" disabled />
-                        <button>{edit}</button>
-                    </Field>
-                    <Field>
-                        <FieldLabel htmlFor="firstname">Firstname</FieldLabel>
-                        <Input 
-                            id="firstname"
-                            name="firstname"
-                            type="text"
-                        />                        
-                    </Field>
-                    <Field>
-                        <FieldLabel htmlFor="lastname">Lastname</FieldLabel>
-                        <Input 
-                            id="lastname"
-                            name="lastname"
-                            type="text"
-                        />                        
-                    </Field>
-                    <Field>
-                        <FieldLabel>Reset your password</FieldLabel>
-                        <button>{edit}</button>
-                        <div>
+export function ProfileTabs({profile, onSaved} : {profile : UserProfile, onSaved: ()=>void}) {
+
+    return (
+        <Tabs defaultValue="Profile" className="w-[400px]">
+            <TabsList>
+                <TabsTrigger value="Profile">Profile</TabsTrigger>
+                <TabsTrigger value="account">account</TabsTrigger>
+                <TabsTrigger value="notifications">notifications</TabsTrigger>
+            </TabsList>
+            <TabsContent value="Profile">
+                <ProfileTab profile={profile} onSaved={onSaved}/>
+            </TabsContent>
+            <TabsContent value="account">
+            <Card>
+              <CardHeader>
+                <CardTitle>account</CardTitle>
+                <CardDescription>
+                  These are your personal secret informations.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                <form>
+                    <FieldGroup>
+                        <Field>
+                            <FieldLabel htmlFor="usernamer">Username</FieldLabel>
+                            <Input id="username" name="username" type="text" disabled />
+                            <button>{edit}</button>
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="user-email">Email address</FieldLabel>
+                            <Input id="user-email" name="user-email" type="email" disabled />
+                            <button>{edit}</button>
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="firstname">Firstname</FieldLabel>
+                            <Input 
+                                id="firstname"
+                                name="firstname"
+                                type="text"
+                            />                        
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="lastname">Lastname</FieldLabel>
+                            <Input 
+                                id="lastname"
+                                name="lastname"
+                                type="text"
+                            />                        
+                        </Field>
+                        <Field>
+                            <FieldLabel>Reset your password</FieldLabel>
+                            <button>{edit}</button>
                             <div>
-                                <Label htmlFor="reset-pwd">Current password</Label>
-                                <Input id="reset-pwd" name="reset-pwd" type="password"/>
+                                <div>
+                                    <Label htmlFor="reset-pwd">Current password</Label>
+                                    <Input id="reset-pwd" name="reset-pwd" type="password"/>
+                                </div>
+                                <div>
+                                    <Label htmlFor="reset-pwd">New password</Label>
+                                    <Input id="reset-pwd" name="reset-pwd" type="password"/>
+                                </div>
+                                <div>
+                                    <Label htmlFor="reset-pwd">Confirm new password</Label>
+                                    <Input id="reset-pwd" name="reset-pwd" type="password"/>
+                                </div>
+                                <button>Reset</button>
                             </div>
-                            <div>
-                                <Label htmlFor="reset-pwd">New password</Label>
-                                <Input id="reset-pwd" name="reset-pwd" type="password"/>
-                            </div>
-                            <div>
-                                <Label htmlFor="reset-pwd">Confirm new password</Label>
-                                <Input id="reset-pwd" name="reset-pwd" type="password"/>
-                            </div>
-                            <button>Reset</button>
-                        </div>
-                    </Field>
+                        </Field>
+                    </FieldGroup>
+                </form>
+              </CardContent>
+            </Card>
+            </TabsContent>
+            <TabsContent value="notifications">
+            <Card>
+                <CardHeader>
+                    <CardTitle>notifications</CardTitle>
+                    <CardDescription>Manage your notification options.</CardDescription>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                <FieldGroup className="w-full max-w-sm">
+                    <FieldLabel htmlFor="switch-notifications">
+                        <Field orientation="horizontal">
+                            <FieldContent>
+                                <FieldTitle>Enable notifications</FieldTitle>
+                                <FieldDescription>
+                                  Receive notifications when focus mode is enabled or disabled.
+                                </FieldDescription>
+                            </FieldContent>
+                            <Switch id="switch-notifications" defaultChecked />
+                        </Field>
+                    </FieldLabel>
+                    <FieldLabel htmlFor="switch-notif-likes">
+                        <Field orientation="horizontal">
+                            <FieldContent>
+                                <FieldTitle>Enable notification "likes"</FieldTitle>
+                                <FieldDescription>
+                                  Receive notification "likes" when focus mode is enabled or disabled.
+                                </FieldDescription>
+                            </FieldContent>
+                            <Switch id="switch-notif-likes" defaultChecked />
+                        </Field>
+                    </FieldLabel>
+                    <FieldLabel htmlFor="switch-notif-messages">
+                        <Field orientation="horizontal">
+                            <FieldContent>
+                                <FieldTitle>Enable notification "messages"</FieldTitle>
+                                <FieldDescription>
+                                  Receive notification "messages" when focus mode is enabled or disabled.
+                                </FieldDescription>
+                            </FieldContent>
+                            <Switch id="switch-notif-messages" defaultChecked />
+                        </Field>
+                    </FieldLabel>
                 </FieldGroup>
-            </form>
-          </CardContent>
-        </Card>
-        </TabsContent>
-        <TabsContent value="notifications">
-        <Card>
-            <CardHeader>
-                <CardTitle>notifications</CardTitle>
-                <CardDescription>Manage your notification options.</CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-            <FieldGroup className="w-full max-w-sm">
-                <FieldLabel htmlFor="switch-notifications">
-                    <Field orientation="horizontal">
-                        <FieldContent>
-                            <FieldTitle>Enable notifications</FieldTitle>
-                            <FieldDescription>
-                              Receive notifications when focus mode is enabled or disabled.
-                            </FieldDescription>
-                        </FieldContent>
-                        <Switch id="switch-notifications" defaultChecked />
-                    </Field>
-                </FieldLabel>
-                <FieldLabel htmlFor="switch-notif-likes">
-                    <Field orientation="horizontal">
-                        <FieldContent>
-                            <FieldTitle>Enable notification "likes"</FieldTitle>
-                            <FieldDescription>
-                              Receive notification "likes" when focus mode is enabled or disabled.
-                            </FieldDescription>
-                        </FieldContent>
-                        <Switch id="switch-notif-likes" defaultChecked />
-                    </Field>
-                </FieldLabel>
-                <FieldLabel htmlFor="switch-notif-messages">
-                    <Field orientation="horizontal">
-                        <FieldContent>
-                            <FieldTitle>Enable notification "messages"</FieldTitle>
-                            <FieldDescription>
-                              Receive notification "messages" when focus mode is enabled or disabled.
-                            </FieldDescription>
-                        </FieldContent>
-                        <Switch id="switch-notif-messages" defaultChecked />
-                    </Field>
-                </FieldLabel>
-            </FieldGroup>
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
-  )
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+    )
 }
 
 export default MyProfilePage

@@ -21,12 +21,22 @@ import { editProfileSchema, type EditProfileValues } from "@/schemas/users"
 import { zodResolver } from "@hookform/resolvers/zod"
 import useProfileTags from "@/hooks/useProfileTags"
 import useProfilePhotos from "@/hooks/useProfilePhotos"
+import useLocationInput from "@/hooks/useLocationInput"
+import { useAuth } from "@/auth/useAuth"
+import * as usersApi from "../api/users"
+import { ApiError } from "@/api/client"
+import { resolveErrorMessage } from "@/i18n/errors"
 
-function ProfileTab({profile} : {profile : UserProfile}) {
+function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>void}) {
+    const { accessToken, logout } = useAuth()
+    const [editing, setEditing] = useState<boolean>(false)
+    const [serverError, setServerError] = useState<string | null>(null)
+
     const {
         register,
         control,
         reset,
+        setValue,
         handleSubmit,
         formState: { errors },
     } = useForm<EditProfileValues>({
@@ -41,6 +51,14 @@ function ProfileTab({profile} : {profile : UserProfile}) {
             location_text: profile.location_text ?? ""
         }
     })
+
+    const {
+        sharePosition,
+        locationError,
+        isLocating,
+        handleToggle,
+        handleManuallyLocationInput
+    } = useLocationInput(setValue)
 
     const {
         inputValue,
@@ -63,15 +81,23 @@ function ProfileTab({profile} : {profile : UserProfile}) {
         handleDeletePhoto
     } = useProfilePhotos()
 
-
-    const [editing, setEditing] = useState<boolean>(false)
-    const [sharePosition, setSharePosition] = useState<boolean>(true)
-
-    const onSubmit = ()=> {
-
+    const onSubmit = async (data: EditProfileValues)=> {
+        setServerError(null)
+        try {
+            setEditing(false)
+            await usersApi.updateUserProfile(accessToken!, data)
+            onSaved()
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setServerError(resolveErrorMessage(err.code, err.message))
+                if (err.code === "USER_NOT_FOUND")
+                    logout()
+            }
+        }
     }
 
     const handleCancel = () => {
+        setServerError(null)
         reset(),
         setEditing(false)
     }
@@ -95,6 +121,7 @@ function ProfileTab({profile} : {profile : UserProfile}) {
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
             <form>
+                {serverError && (<FieldError>{serverError}</FieldError>)}
                 <FieldGroup>
                     <Field>
                         <FieldLabel htmlFor="age">Age</FieldLabel>
@@ -165,11 +192,18 @@ function ProfileTab({profile} : {profile : UserProfile}) {
                               Share your localisation permisses a good match, otherwise, please entre manually your position.
                             </FieldDescription>
                             <Switch
-                                id="switch-position-mode" checked={sharePosition} onCheckedChange={setSharePosition} disabled={!editing}/>
+                                id="switch-position-mode"
+                                checked={sharePosition}
+                                onCheckedChange={handleToggle}
+                                disabled={!editing}/>
+                            {isLocating && (<p>Getting your location...</p>)}
                             {!sharePosition && (
                                 <Input id="location_text" type="text" disabled={!editing}
-                                {...register("location_text")} />
+                                {...register("location_text", {
+                                    onChange: (e)=>handleManuallyLocationInput(e.target.value)
+                                })} />
                             )}
+                            {locationError && (<FieldError>{locationError}</FieldError>)}
                             <FieldError errors={[errors.location_text]}/>
                         </FieldContent>
                     </Field>
