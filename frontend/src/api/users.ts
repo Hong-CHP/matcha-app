@@ -17,6 +17,11 @@ export async function updateUserProfile(token: string, body: ProfileValues): Pro
     return apiPatch<UserProfile>("/users/me", body, {token})
 }
 
+export async function editUserProfile(token: string, body: ProfileValues): Promise<UserProfile> {
+    return apiPatch<UserProfile>("/users/me/profile", body, {token})
+}
+
+
 export async function getMyTags(token: string): Promise<Tag[]> {
     return apiGet<Tag[]>("/users/me/tags", {token})
 }

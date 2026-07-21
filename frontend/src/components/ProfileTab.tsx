@@ -85,7 +85,7 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
         setServerError(null)
         try {
             setEditing(false)
-            await usersApi.updateUserProfile(accessToken!, data)
+            await usersApi.editUserProfile(accessToken!, data)
             onSaved()
         } catch (err) {
             if (err instanceof ApiError) {

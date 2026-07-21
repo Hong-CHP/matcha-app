@@ -1,4 +1,3 @@
-import { useAuth } from "@/auth/useAuth"
 import useUserProfile from "@/hooks/useUserProfile"
 import {
   Avatar,
@@ -8,7 +7,7 @@ import {
 } from "@/components/ui/avatar"
 import likes from "../../assets/likes.png"
 import vues from "../../assets/vues.png"
-import edit from "../../assets/edit.png"
+
 import {
   Card,
   CardContent,
@@ -25,13 +24,10 @@ import {
 import { Field, FieldGroup, FieldLabel, FieldTitle, FieldContent, FieldDescription, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import TagsForm from "@/components/tags-form"
-import PhotosForm from "@/components/photos-form"
 import { Switch } from "@/components/ui/switch"
 import ProfileTab from "@/components/ProfileTab"
 import type { UserProfile } from "@/types/user"
+import AccountTab from "@/components/AccountTab"
 
 function MyProfilePage() {
     const { profile, fetchProfile } = useUserProfile()
@@ -77,43 +73,9 @@ export function ProfileTabs({profile, onSaved} : {profile : UserProfile, onSaved
                 <ProfileTab profile={profile} onSaved={onSaved}/>
             </TabsContent>
             <TabsContent value="account">
-            <Card>
-              <CardHeader>
-                <CardTitle>account</CardTitle>
-                <CardDescription>
-                  These are your personal secret informations.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                <form>
-                    <FieldGroup>
-                        <Field>
-                            <FieldLabel htmlFor="usernamer">Username</FieldLabel>
-                            <Input id="username" name="username" type="text" disabled />
-                            <button>{edit}</button>
-                        </Field>
-                        <Field>
-                            <FieldLabel htmlFor="user-email">Email address</FieldLabel>
-                            <Input id="user-email" name="user-email" type="email" disabled />
-                            <button>{edit}</button>
-                        </Field>
-                        <Field>
-                            <FieldLabel htmlFor="firstname">Firstname</FieldLabel>
-                            <Input 
-                                id="firstname"
-                                name="firstname"
-                                type="text"
-                            />                        
-                        </Field>
-                        <Field>
-                            <FieldLabel htmlFor="lastname">Lastname</FieldLabel>
-                            <Input 
-                                id="lastname"
-                                name="lastname"
-                                type="text"
-                            />                        
-                        </Field>
-                        <Field>
+                <AccountTab profile={profile} onSaved={onSaved}/>
+            </TabsContent>
+                                    <Field>
                             <FieldLabel>Reset your password</FieldLabel>
                             <button>{edit}</button>
                             <div>
@@ -132,11 +94,6 @@ export function ProfileTabs({profile, onSaved} : {profile : UserProfile, onSaved
                                 <button>Reset</button>
                             </div>
                         </Field>
-                    </FieldGroup>
-                </form>
-              </CardContent>
-            </Card>
-            </TabsContent>
             <TabsContent value="notifications">
             <Card>
                 <CardHeader>

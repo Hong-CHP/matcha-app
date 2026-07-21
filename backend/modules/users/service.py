@@ -4,6 +4,7 @@ from modules.users.schemas import (
     PhotoOut,
     UserLocationInput,
     UserAccountInput,
+    UserProfileInput
 )
 from modules.users.exceptions import (
     UserNotFoundException,
@@ -47,8 +48,8 @@ class UsersService:
     
     async def patch_profile(
             self,
-            current_user_id,
-            payload
+            current_user_id: int,
+            payload: UserProfileInput
             ) -> UserProfile:
         user_profile = await self.repository.patch_user_profile(current_user_id, payload)
         if not user_profile:
@@ -84,6 +85,17 @@ class UsersService:
         if not user_profile:
             raise UserNotFoundException()
         return user_profile
+    
+    # async def patch_full_profile(
+    #         self,
+    #         current_user_id: int,
+    #         payload: EditProfileInput
+    #         ) -> UserProfile:
+    #     await self.repository.patch_user_profile(current_user_id, payload)
+    #     user_profile = await self.repository.patch_user_location(current_user_id, payload)
+    #     if not user_profile:
+    #         raise UserNotFoundException()
+    #     return user_profile
     
     async def add_one_profile_tag(
             self,

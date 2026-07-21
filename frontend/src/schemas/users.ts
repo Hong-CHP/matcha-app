@@ -23,5 +23,12 @@ export const editProfileSchema = profileSchema.extend({
     }
 )
 
+export const accountSchema = z.object({
+  username: z.string().min(1, 'Username is required'),
+  first_name: z.string().min(1, 'First name is required'),
+  last_name: z.string().min(1, 'Last name is required'),
+})
+
 export type ProfileValues = z.infer<typeof profileSchema>
 export type EditProfileValues = z.infer<typeof editProfileSchema>
+export type AccountValues = z.infer<typeof accountSchema>

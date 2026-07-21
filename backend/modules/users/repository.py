@@ -5,6 +5,7 @@ from modules.users.schemas import (
     PhotoOut,
     UserLocationInput,
     UserAccountInput,
+    UserProfileInput
 )
 from typing import Any, List, Optional, Type, TypeVar
 from pydantic import BaseModel
@@ -61,11 +62,11 @@ class UsersRepository:
     async def patch_user_profile(
             self,
             current_user_id,
-            payload
+            payload: UserProfileInput
             ) -> Optional[UserProfile]:
         query = """
                 UPDATE users
-                set gender = $2, sexual_preference = $3, age = $4, bio = $5
+                SET gender = $2, sexual_preference = $3, age = $4, bio = $5
                 WHERE id = $1
                 RETURNING id, email, username, first_name, last_name, is_verified, created_at,
                 gender, sexual_preference, age, bio,
@@ -169,6 +170,26 @@ class UsersRepository:
                 return profile
         except asyncpg.UniqueViolationError:
             raise EmailAlreadyTakenException(payload.email) from None
+    
+    # async def patch_user_location(
+    #         self,
+    #         current_user_id: int,
+    #         payload: EditProfileInput
+    # ) -> Optional[UserProfile]:
+    #     query = f"""
+    #             UPDATE users
+    #             SET latitude = $2, longitude = $3, location_text = $4
+    #             WHERE id = $1
+    #             RETURNING {USER_COLUMNS}
+    #             """
+    #     return await self._fetch_one(
+    #         UserProfile,
+    #         query,
+    #         current_user_id,
+    #         payload.latitude,
+    #         payload.longitude,
+    #         payload.location_text
+    #     )
     
     async def add_one_tag(
             self,

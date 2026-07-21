@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from datetime import datetime
 from typing import Literal, Optional
 
@@ -43,3 +43,17 @@ class PhotoOut(BaseModel):
     id: int
     url: str
     is_profile_photo: bool
+
+class EditProfileInput(UserProfileInput):
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    location_text: Optional[str] = None    
+
+    @model_validator(mode="after")
+    def check_location_complete(self) -> "EditProfileInput":
+        has_coords = self.latitude is not None and self.longitude is not None
+        has_text = bool(self.location_text is not None and self.location_text.strip())
+        if not (has_coords and has_text):
+            raise ValueError("latitude, longitude and location_text must all be provided together")
+        return self
+        
