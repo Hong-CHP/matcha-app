@@ -307,3 +307,25 @@ class UsersRepository:
             return None
         Path(old_row["url"].lstrip("/")).unlink(missing_ok=True)
         return photo
+
+    async def has_profile_photo(self, user_id: int) -> bool:
+        row = await self.connection.fetchval(
+            """
+            SELECT 1 FROM user_photos
+            WHERE user_id = $1 AND is_profile_photo = true
+            LIMIT 1
+            """,
+            user_id,
+        )
+        return row is not None
+
+    async def bump_fame(self, user_id: int, delta: int) -> None:
+        await self.connection.execute(
+            """
+            UPDATE users
+            SET fame_rating = LEAST(100, GREATEST(0, COALESCE(fame_rating, 0) + $2))
+            WHERE id = $1
+            """,
+            user_id,
+            delta,
+        )

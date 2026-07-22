@@ -1,0 +1,27 @@
+class SocialException(Exception):
+    code: str = "SOCIAL_ERROR"
+    field: str | None = None
+
+class SocialUserNotFoundException(SocialException):
+    code = "USER_NOT_FOUND"
+    field = None
+    def __init__(self):
+        super().__init__("User not found")
+
+class CannotVisitSelfException(SocialException):
+    code = "CANNOT_VISIT_SELF"
+    field = "target_user_id"
+    def __init__(self):
+        super().__init__("Cannot visit your own profile")
+
+class CannotLikeSelfException(SocialException):
+    code = "CANNOT_LIKE_SELF"
+    field = "target_user_id"
+    def __init__(self):
+        super().__init__("Cannot like yourself")
+
+class ProfilePhotoRequiredException(SocialException):
+    code = "PROFILE_PHOTO_REQUIRED"
+    field = "photos"
+    def __init__(self):
+        super().__init__("A profile photo is required to like someone")
