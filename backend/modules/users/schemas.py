@@ -56,4 +56,9 @@ class EditProfileInput(UserProfileInput):
         if not (has_coords and has_text):
             raise ValueError("latitude, longitude and location_text must all be provided together")
         return self
-        
+
+class EditAccoutInput(BaseModel):
+    username: str 
+    first_name: str 
+    last_name: str
+

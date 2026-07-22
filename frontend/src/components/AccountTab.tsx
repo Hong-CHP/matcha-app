@@ -17,12 +17,15 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import edit from "../../assets/edit.png"
 import { resendVerificationSchema, type ResendVerificationValues } from "@/schemas/auth"
+import * as usersApi from "../api/users"
+import { ApiError } from "@/api/client"
+import { resolveErrorMessage } from "@/i18n/errors"
 
 function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>void}) {
     const { accessToken, logout } = useAuth()
     const [editing, setEditing] = useState<boolean>(false)
     const [serverError, setServerError] = useState<string | null>(null)
-    const [emailChangeSent, setEmailChangeSent] = useState(false)
+    const [emailChangeSent, setEmailChangeSent] = useState<string | null>(null)
 
     const {
         register,
@@ -45,9 +48,35 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
         }
     })
 
-    const onSubmitAccountChange = async () => {}
+    const onSubmitAccountChange = async (data: AccountValues) => {
+        setServerError(null)
+        try {
+            setEditing(false)
+            await usersApi.editUserAccount(accessToken!, data)
+            onSaved()
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setServerError(resolveErrorMessage(err.code, err.message))
+                if (err.code === "USER_NOT_FOUND")
+                    logout()
+            }
+        }
+    }
     
-    const onSubmitEmailChange = async () => {}
+    const onSubmitEmailChange = async (newEmail: ResendVerificationValues) => {
+        setServerError(null)
+        try {
+            setEditing(false)
+            const response = await usersApi.requestEmailChange(accessToken!, newEmail)
+            setEmailChangeSent(response.message)
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setServerError(resolveErrorMessage(err.code, err.message))
+                if (err.code === "USER_NOT_FOUND")
+                    logout()
+            }
+        }
+    }
     
     const handleCancel = () => {
         setServerError(null)
@@ -126,7 +155,7 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                                 <div>
                                     <Button onClick={emailForm.handleSubmit(onSubmitEmailChange)}>Send verification</Button>
                                     <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                                    {emailChangeSent && (<p>Verification email sent. If the email address is valid, you will receive a verification soon...</p>)}
+                                    {emailChangeSent && (<p>{emailChangeSent}</p>)}
                                 </div>
                             </Field>
                         )}

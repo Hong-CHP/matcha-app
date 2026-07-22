@@ -14,6 +14,8 @@ import { FortyTwoCallbackPage } from '../pages/auth/FortyTwoCallbackPage'
 import { ResendVerificationPage } from '../pages/auth/ResendVerificationPage'
 import { VerifyEmailPage } from '../pages/auth/VerifyEmailPage'
 import { ProfileCompletePage } from '../pages/profile/ProfileCompletePage'
+import MyProfilePage from '@/pages/profile/MyProfilePage'
+import ConfirmEmailChangePage from '@/pages/profile/ConfirmEmailChangePage'
 
 export function AppRoutes() {
   return (
@@ -25,6 +27,8 @@ export function AppRoutes() {
           </Route>
           <Route element={<ProfileCompleteRoute />}>
             <Route path="/" element={<HomePage />} />
+            <Route path="/profile" element={<MyProfilePage />} />
+            <Route path="/confirm-email-change" element={<ConfirmEmailChangePage />} />
           </Route>
         </Route>
       </Route>

@@ -22,6 +22,8 @@ from core.config import settings
 import imghdr
 import uuid
 from pathlib import Path
+from modules.notifications.outbox_repository import OutboxRepository
+from core.config import settings
 
 UPLOAD_DIR = Path("uploads")
 MAX_SIZE = 5 * 1024 * 1024
@@ -191,6 +193,27 @@ class UsersRepository:
     #         payload.location_text
     #     )
     
+    # async def patch_accout(
+    #         self,
+    #         payload: EditAccoutInput,
+    #         current_user_id: int
+    #     ) -> Optional[UserProfile]:
+    #     query = f"""
+    #             UPDATE users
+    #             SET username = $2, first_name = $3, last_name = $4
+    #             WHERE id = $1
+    #             RETURNING {USER_COLUMNS}
+    #             """
+    #     return await self._fetch_one(
+    #         UserProfile,
+    #         query,
+    #         current_user_id,
+    #         payload.username,
+    #         payload.first_name,
+    #         payload.last_name
+    #     )
+        
+
     async def add_one_tag(
             self,
             current_user_id: int,

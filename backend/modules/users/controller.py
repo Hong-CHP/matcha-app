@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, UploadFile, File, status
 import asyncpg
 from core.database import get_db_connection
 from core.presence import get_current_user_id_and_touch
@@ -57,6 +57,16 @@ async def patch_me_account(
     service: UsersService = Depends(get_users_service),
 ) -> UserProfile:
     return await service.update_account(current_user_id, payload)
+
+# @users_router.patch(
+#     "/users/me/account", response_model=UserProfile
+# )
+# async def patch_accout(
+#     payload: EditAccoutInput,
+#     current_user_id: int = Depends(get_current_user_id),
+#     service: UsersService = Depends(get_users_service)
+#     ) -> UserProfile:
+#     return await service.patch_accout(current_user_id, payload)
 
 @users_router.post(
     "/me/tags", response_model=TagOut
