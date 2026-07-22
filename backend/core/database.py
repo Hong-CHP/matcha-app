@@ -13,7 +13,15 @@ class DatabaseManager:
 
     async def init_pool(self) -> None:
         if self.pool is None:
-            self.pool = await asyncpg.create_pool(dsn=settings.DATABASE_URL, min_size=5, max_size=20, command_timeout=60.0)
+            self.pool = await asyncpg.create_pool(
+                dsn=settings.DATABASE_URL,
+                min_size=5,
+                max_size=20,
+                command_timeout=60.0,
+                # Force UTC so NOW() writes and naive TIMESTAMP reads are
+                # UTC-consistent — required for correct is_online windows.
+                server_settings={"timezone": "UTC"},
+            )
         
 
     async def exit_pool(self):

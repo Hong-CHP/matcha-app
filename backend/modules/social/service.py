@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from modules.social.repository import SocialRepository
 from modules.users.repository import UsersRepository
 from modules.social.exceptions import (
@@ -5,18 +6,24 @@ from modules.social.exceptions import (
     CannotVisitSelfException,
     CannotLikeSelfException,
     ProfilePhotoRequiredException,
+    CannotBlockSelfException,
+    CannotReportSelfException,
+    BlockedException,
 )
 from modules.social.schemas import (
     OkResponse,
     LikeStateResponse,
+    BlockStateResponse,
     RelationshipResponse,
     VisitorOut,
     LikeReceivedOut,
+    BlockedUserOut,
 )
-from typing import List
+from typing import List, Optional
 
 FAME_LIKE_DELTA = 5
 FAME_VISIT_DELTA = 1
+ONLINE_WINDOW_SECONDS = 900
 
 
 class SocialService:
@@ -24,11 +31,16 @@ class SocialService:
         self.social_repo = social_repo
         self.users_repo = users_repo
 
+    async def _ensure_not_blocked(self, a: int, b: int) -> None:
+        if await self.social_repo.is_blocked_either_way(a, b):
+            raise BlockedException()
+
     async def record_visit(self, viewer_id: int, target_id: int) -> OkResponse:
         if viewer_id == target_id:
             raise CannotVisitSelfException()
         if not await self.social_repo.user_exists(target_id):
             raise SocialUserNotFoundException()
+        await self._ensure_not_blocked(viewer_id, target_id)
         async with self.social_repo.connection.transaction():
             inserted = await self.social_repo.upsert_visit(viewer_id, target_id)
             if inserted:
@@ -43,6 +55,7 @@ class SocialService:
             raise CannotLikeSelfException()
         if not await self.social_repo.user_exists(to_user_id):
             raise SocialUserNotFoundException()
+        await self._ensure_not_blocked(from_user_id, to_user_id)
         if not await self.users_repo.has_profile_photo(from_user_id):
             raise ProfilePhotoRequiredException()
         async with self.social_repo.connection.transaction():
@@ -62,7 +75,53 @@ class SocialService:
     ) -> List[LikeReceivedOut]:
         return await self.social_repo.list_likes_received(user_id, limit, offset)
 
+    async def block(self, from_user_id: int, to_user_id: int) -> BlockStateResponse:
+        if from_user_id == to_user_id:
+            raise CannotBlockSelfException()
+        if not await self.social_repo.user_exists(to_user_id):
+            raise SocialUserNotFoundException()
+        await self.social_repo.activate_block(from_user_id, to_user_id)
+        return BlockStateResponse(blocked=True)
+
+    async def unblock(self, from_user_id: int, to_user_id: int) -> BlockStateResponse:
+        await self.social_repo.soft_unblock(from_user_id, to_user_id)
+        return BlockStateResponse(blocked=False)
+
+    async def list_blocks(
+        self, user_id: int, limit: int, offset: int
+    ) -> List[BlockedUserOut]:
+        return await self.social_repo.list_blocks(user_id, limit, offset)
+
+    async def report(
+        self, reporter_id: int, target_id: int, reason: Optional[str]
+    ) -> OkResponse:
+        if reporter_id == target_id:
+            raise CannotReportSelfException()
+        if not await self.social_repo.user_exists(target_id):
+            raise SocialUserNotFoundException()
+        await self.social_repo.upsert_report(reporter_id, target_id, reason)
+        return OkResponse()
+
     async def get_relationship(self, me: int, target_id: int) -> RelationshipResponse:
         if not await self.social_repo.user_exists(target_id):
             raise SocialUserNotFoundException()
-        return await self.social_repo.get_relationship_flags(me, target_id)
+        flags = await self.social_repo.get_relationship_flags(me, target_id)
+        last_connection = await self.users_repo.get_last_connection(target_id)
+        return RelationshipResponse(
+            liked_by_me=flags.liked_by_me,
+            liked_you=flags.liked_you,
+            connected=flags.liked_by_me and flags.liked_you,
+            blocked_by_me=flags.blocked_by_me,
+            blocked_you=flags.blocked_you,
+            last_connection=last_connection,
+            is_online=self._is_online(last_connection),
+        )
+
+    @staticmethod
+    def _is_online(last_connection: Optional[datetime]) -> bool:
+        if last_connection is None:
+            return False
+        if last_connection.tzinfo is None:
+            last_connection = last_connection.replace(tzinfo=timezone.utc)
+        age = (datetime.now(timezone.utc) - last_connection).total_seconds()
+        return age <= ONLINE_WINDOW_SECONDS

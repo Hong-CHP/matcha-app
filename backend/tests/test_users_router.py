@@ -10,6 +10,7 @@ from modules.users.service import UsersService
 from modules.users.controller import get_users_service
 from modules.users.exceptions import EmailAlreadyTakenException
 from core.auth import get_current_user_id
+from core.presence import get_current_user_id_and_touch
 from modules.auth.controller import get_auth_service
 from modules.auth.schemas import CurrentUserResponse
 
@@ -101,6 +102,7 @@ def override_service(fake_user):
     fake_service = UsersService(fake_repo)
 
     app.dependency_overrides[get_users_service] = lambda: fake_service
+    app.dependency_overrides[get_current_user_id_and_touch] = get_current_user_id
     yield fake_service
     app.dependency_overrides.clear()
 
@@ -211,6 +213,7 @@ class TestPatchAccount:
         fake_repo.raise_on_account = EmailAlreadyTakenException("taken@example.com")
         fake_service = UsersService(fake_repo)
         app.dependency_overrides[get_users_service] = lambda: fake_service
+        app.dependency_overrides[get_current_user_id_and_touch] = get_current_user_id
         try:
             token = make_token(user_id=1)
             response = client.patch(

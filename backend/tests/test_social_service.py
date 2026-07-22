@@ -1,13 +1,22 @@
 import pytest
 from contextlib import asynccontextmanager
-from modules.social.service import SocialService, FAME_LIKE_DELTA, FAME_VISIT_DELTA
+from datetime import datetime, timezone, timedelta
+from modules.social.service import (
+    SocialService,
+    FAME_LIKE_DELTA,
+    FAME_VISIT_DELTA,
+    ONLINE_WINDOW_SECONDS,
+)
 from modules.social.exceptions import (
     CannotVisitSelfException,
     CannotLikeSelfException,
     ProfilePhotoRequiredException,
     SocialUserNotFoundException,
+    CannotBlockSelfException,
+    CannotReportSelfException,
+    BlockedException,
 )
-from modules.social.schemas import RelationshipResponse
+from modules.social.repository import RelationshipFlags
 
 
 class FakeConnection:
@@ -20,8 +29,10 @@ class FakeSocialRepository:
     def __init__(self):
         self.connection = FakeConnection()
         self.existing_users = {1, 2, 3}
-        self.visits = {}  # (viewer, target) -> True
-        self.likes = {}  # (from, to) -> "active" | "inactive"
+        self.visits = {}
+        self.likes = {}
+        self.blocks = {}
+        self.reports = {}
         self.visit_inserts = []
         self.activate_results = []
 
@@ -60,13 +71,12 @@ class FakeSocialRepository:
             and self.likes.get((b, a)) == "active"
         )
 
-    async def get_relationship_flags(self, me: int, target: int) -> RelationshipResponse:
-        liked_by_me = self.likes.get((me, target)) == "active"
-        liked_you = self.likes.get((target, me)) == "active"
-        return RelationshipResponse(
-            liked_by_me=liked_by_me,
-            liked_you=liked_you,
-            connected=liked_by_me and liked_you,
+    async def get_relationship_flags(self, me: int, target: int) -> RelationshipFlags:
+        return RelationshipFlags(
+            liked_by_me=self.likes.get((me, target)) == "active",
+            liked_you=self.likes.get((target, me)) == "active",
+            blocked_by_me=self.blocks.get((me, target)) == "active",
+            blocked_you=self.blocks.get((target, me)) == "active",
         )
 
     async def list_visitors(self, user_id: int, limit: int, offset: int):
@@ -75,12 +85,34 @@ class FakeSocialRepository:
     async def list_likes_received(self, user_id: int, limit: int, offset: int):
         return []
 
+    async def is_blocked_either_way(self, a: int, b: int) -> bool:
+        return (
+            self.blocks.get((a, b)) == "active"
+            or self.blocks.get((b, a)) == "active"
+        )
+
+    async def activate_block(self, from_user_id: int, to_user_id: int) -> None:
+        self.blocks[(from_user_id, to_user_id)] = "active"
+
+    async def soft_unblock(self, from_user_id: int, to_user_id: int) -> None:
+        key = (from_user_id, to_user_id)
+        if self.blocks.get(key) == "active":
+            self.blocks[key] = "inactive"
+
+    async def list_blocks(self, user_id: int, limit: int, offset: int):
+        return []
+
+    async def upsert_report(self, reporter_id: int, target_id: int, reason):
+        self.reports[(reporter_id, target_id)] = reason
+
 
 class FakeUsersRepository:
-    def __init__(self, has_avatar: bool = True, fame: int = 0):
+    def __init__(self, has_avatar: bool = True, fame: int = 0, last_connection=None):
         self.has_avatar = has_avatar
         self.fame = fame
         self.fame_bumps = []
+        self.last_connection = last_connection
+        self.touches = []
 
     async def has_profile_photo(self, user_id: int) -> bool:
         return self.has_avatar
@@ -88,6 +120,13 @@ class FakeUsersRepository:
     async def bump_fame(self, user_id: int, delta: int) -> None:
         self.fame_bumps.append((user_id, delta))
         self.fame = min(100, max(0, self.fame + delta))
+
+    async def touch_last_connection(self, user_id: int) -> None:
+        self.touches.append(user_id)
+        self.last_connection = datetime.now(timezone.utc)
+
+    async def get_last_connection(self, user_id: int):
+        return self.last_connection
 
 
 @pytest.mark.asyncio
@@ -195,3 +234,90 @@ async def test_fame_clamp_at_100():
     service = SocialService(social, users)
     await service.like(1, 2)
     assert users.fame == 100
+
+
+@pytest.mark.asyncio
+async def test_block_self_rejected():
+    social = FakeSocialRepository()
+    users = FakeUsersRepository()
+    service = SocialService(social, users)
+    with pytest.raises(CannotBlockSelfException):
+        await service.block(1, 1)
+
+
+@pytest.mark.asyncio
+async def test_block_then_like_raises_blocked():
+    social = FakeSocialRepository()
+    users = FakeUsersRepository()
+    service = SocialService(social, users)
+    await service.block(1, 2)
+    with pytest.raises(BlockedException):
+        await service.like(1, 2)
+    with pytest.raises(BlockedException):
+        await service.record_visit(1, 2)
+
+
+@pytest.mark.asyncio
+async def test_reverse_block_then_like_raises_blocked():
+    social = FakeSocialRepository()
+    users = FakeUsersRepository()
+    service = SocialService(social, users)
+    await service.block(2, 1)
+    with pytest.raises(BlockedException):
+        await service.like(1, 2)
+    with pytest.raises(BlockedException):
+        await service.record_visit(1, 2)
+
+
+@pytest.mark.asyncio
+async def test_unblock_allows_like_again():
+    social = FakeSocialRepository()
+    users = FakeUsersRepository()
+    service = SocialService(social, users)
+    await service.block(1, 2)
+    await service.unblock(1, 2)
+    res = await service.like(1, 2)
+    assert res.liked is True
+
+
+@pytest.mark.asyncio
+async def test_report_rejects_self():
+    social = FakeSocialRepository()
+    users = FakeUsersRepository()
+    service = SocialService(social, users)
+    with pytest.raises(CannotReportSelfException):
+        await service.report(1, 1, "x")
+
+
+@pytest.mark.asyncio
+async def test_report_stores_ok():
+    social = FakeSocialRepository()
+    users = FakeUsersRepository()
+    service = SocialService(social, users)
+    res = await service.report(1, 2, "fake")
+    assert res.ok is True
+    assert social.reports[(1, 2)] == "fake"
+
+
+@pytest.mark.asyncio
+async def test_relationship_includes_block_and_online_fields():
+    social = FakeSocialRepository()
+    recent = datetime.now(timezone.utc) - timedelta(seconds=60)
+    users = FakeUsersRepository(last_connection=recent)
+    service = SocialService(social, users)
+    await service.block(1, 2)
+    flags = await service.get_relationship(1, 2)
+    assert flags.blocked_by_me is True
+    assert flags.blocked_you is False
+    assert flags.is_online is True
+    assert flags.last_connection == recent
+
+
+@pytest.mark.asyncio
+async def test_relationship_offline_when_stale():
+    social = FakeSocialRepository()
+    stale = datetime.now(timezone.utc) - timedelta(seconds=ONLINE_WINDOW_SECONDS + 10)
+    users = FakeUsersRepository(last_connection=stale)
+    service = SocialService(social, users)
+    flags = await service.get_relationship(1, 2)
+    assert flags.is_online is False

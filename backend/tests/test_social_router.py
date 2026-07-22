@@ -6,10 +6,12 @@ import time
 import jwt
 from core.config import settings
 from core.auth import get_current_user_id
+from core.presence import get_current_user_id_and_touch
 from modules.social.controller import get_social_service
 from modules.social.schemas import (
     OkResponse,
     LikeStateResponse,
+    BlockStateResponse,
     RelationshipResponse,
     VisitorOut,
     LikeReceivedOut,
@@ -18,6 +20,9 @@ from modules.social.exceptions import (
     CannotVisitSelfException,
     ProfilePhotoRequiredException,
     SocialUserNotFoundException,
+    CannotBlockSelfException,
+    BlockedException,
+    CannotReportSelfException,
 )
 from modules.auth.controller import get_auth_service
 from modules.auth.schemas import CurrentUserResponse
@@ -44,12 +49,15 @@ class FakeSocialService:
     def __init__(self):
         self.has_avatar = True
         self.users = {1, 2}
+        self.blocked = False
 
     async def record_visit(self, viewer_id: int, target_id: int) -> OkResponse:
         if viewer_id == target_id:
             raise CannotVisitSelfException()
         if target_id not in self.users:
             raise SocialUserNotFoundException()
+        if self.blocked:
+            raise BlockedException()
         return OkResponse()
 
     async def list_visitors(self, user_id: int, limit: int, offset: int):
@@ -68,6 +76,8 @@ class FakeSocialService:
             raise ProfilePhotoRequiredException()
         if to_user_id not in self.users:
             raise SocialUserNotFoundException()
+        if self.blocked:
+            raise BlockedException()
         return LikeStateResponse(liked=True, connected=False)
 
     async def unlike(self, from_user_id: int, to_user_id: int) -> LikeStateResponse:
@@ -91,13 +101,42 @@ class FakeSocialService:
             liked_by_me=True,
             liked_you=False,
             connected=False,
+            blocked_by_me=self.blocked,
+            blocked_you=False,
+            is_online=True,
+            last_connection=datetime.datetime.now(datetime.UTC),
         )
+
+    async def block(self, from_user_id: int, to_user_id: int) -> BlockStateResponse:
+        if from_user_id == to_user_id:
+            raise CannotBlockSelfException()
+        if to_user_id not in self.users:
+            raise SocialUserNotFoundException()
+        self.blocked = True
+        return BlockStateResponse(blocked=True)
+
+    async def unblock(self, from_user_id: int, to_user_id: int) -> BlockStateResponse:
+        self.blocked = False
+        return BlockStateResponse(blocked=False)
+
+    async def list_blocks(self, user_id: int, limit: int, offset: int):
+        return []
+
+    async def report(
+        self, reporter_id: int, target_id: int, reason: str | None
+    ) -> OkResponse:
+        if reporter_id == target_id:
+            raise CannotReportSelfException()
+        if target_id not in self.users:
+            raise SocialUserNotFoundException()
+        return OkResponse()
 
 
 @pytest.fixture
 def override_social():
     fake = FakeSocialService()
     app.dependency_overrides[get_social_service] = lambda: fake
+    app.dependency_overrides[get_current_user_id_and_touch] = get_current_user_id
     yield fake
     app.dependency_overrides.clear()
 
@@ -130,6 +169,16 @@ class TestSocialVisits:
         assert response.status_code == 404
         assert response.json()["code"] == "USER_NOT_FOUND"
 
+    def test_visit_blocked(self, override_social):
+        override_social.blocked = True
+        token = make_token(1)
+        response = client.post(
+            "/social/visits/2",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 403
+        assert response.json()["code"] == "BLOCKED"
+
 
 class TestSocialLikes:
     def test_like_requires_photo(self, override_social):
@@ -154,6 +203,47 @@ class TestSocialLikes:
         assert "connected" in body
 
 
+class TestSocialBlocks:
+    def test_block_ok(self, override_social):
+        token = make_token(1)
+        response = client.post(
+            "/social/blocks/2",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 200
+        assert response.json() == {"blocked": True}
+
+    def test_block_self(self, override_social):
+        token = make_token(1)
+        response = client.post(
+            "/social/blocks/1",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 400
+        assert response.json()["code"] == "CANNOT_BLOCK_SELF"
+
+    def test_unblock_ok(self, override_social):
+        token = make_token(1)
+        response = client.delete(
+            "/social/blocks/2",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 200
+        assert response.json() == {"blocked": False}
+
+
+class TestSocialReports:
+    def test_report_ok(self, override_social):
+        token = make_token(1)
+        response = client.post(
+            "/social/reports/2",
+            headers={"Authorization": f"Bearer {token}"},
+            json={"reason": "fake account"},
+        )
+        assert response.status_code == 200
+        assert response.json() == {"ok": True}
+
+
 class TestSocialRelationship:
     def test_relationship_flags(self, override_social):
         token = make_token(1)
@@ -166,6 +256,8 @@ class TestSocialRelationship:
         assert body["liked_by_me"] is True
         assert body["liked_you"] is False
         assert body["connected"] is False
+        assert "blocked_by_me" in body
+        assert "is_online" in body
 
     def test_relationship_not_found(self, override_social):
         token = make_token(1)
@@ -224,3 +316,4 @@ class TestAuthMeStaysThin:
         assert "liked_by_me" not in body
         assert "connected" not in body
         assert "visitors" not in body
+        assert "blocked_by_me" not in body

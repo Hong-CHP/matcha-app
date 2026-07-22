@@ -25,3 +25,21 @@ class ProfilePhotoRequiredException(SocialException):
     field = "photos"
     def __init__(self):
         super().__init__("A profile photo is required to like someone")
+
+class CannotBlockSelfException(SocialException):
+    code = "CANNOT_BLOCK_SELF"
+    field = "target_user_id"
+    def __init__(self):
+        super().__init__("Cannot block yourself")
+
+class CannotReportSelfException(SocialException):
+    code = "CANNOT_REPORT_SELF"
+    field = "target_user_id"
+    def __init__(self):
+        super().__init__("Cannot report yourself")
+
+class BlockedException(SocialException):
+    code = "BLOCKED"
+    field = None
+    def __init__(self):
+        super().__init__("Action not allowed because of a block")

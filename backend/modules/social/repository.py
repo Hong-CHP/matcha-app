@@ -1,6 +1,21 @@
 import asyncpg
-from typing import List
-from modules.social.schemas import VisitorOut, LikeReceivedOut, RelationshipResponse
+from dataclasses import dataclass
+from typing import List, Optional
+from modules.social.schemas import (
+    VisitorOut,
+    LikeReceivedOut,
+    BlockedUserOut,
+)
+
+
+@dataclass
+class RelationshipFlags:
+    """Raw like/block flags between two users. Response assembly (connected,
+    presence) belongs to the service, not this SQL layer."""
+    liked_by_me: bool
+    liked_you: bool
+    blocked_by_me: bool
+    blocked_you: bool
 
 
 class SocialRepository:
@@ -93,7 +108,7 @@ class SocialRepository:
         )
         return bool(row["ab"] and row["ba"])
 
-    async def get_relationship_flags(self, me: int, target: int) -> RelationshipResponse:
+    async def get_relationship_flags(self, me: int, target: int) -> RelationshipFlags:
         row = await self.connection.fetchrow(
             """
             SELECT
@@ -104,16 +119,23 @@ class SocialRepository:
               EXISTS (
                 SELECT 1 FROM likes
                 WHERE from_user_id = $2 AND to_user_id = $1 AND status = 'active'
-              ) AS liked_you
+              ) AS liked_you,
+              EXISTS (
+                SELECT 1 FROM blocks
+                WHERE from_user_id = $1 AND to_user_id = $2 AND status = 'active'
+              ) AS blocked_by_me,
+              EXISTS (
+                SELECT 1 FROM blocks
+                WHERE from_user_id = $2 AND to_user_id = $1 AND status = 'active'
+              ) AS blocked_you
             """,
             me, target,
         )
-        liked_by_me = bool(row["liked_by_me"])
-        liked_you = bool(row["liked_you"])
-        return RelationshipResponse(
-            liked_by_me=liked_by_me,
-            liked_you=liked_you,
-            connected=liked_by_me and liked_you,
+        return RelationshipFlags(
+            liked_by_me=bool(row["liked_by_me"]),
+            liked_you=bool(row["liked_you"]),
+            blocked_by_me=bool(row["blocked_by_me"]),
+            blocked_you=bool(row["blocked_you"]),
         )
 
     async def list_likes_received(
@@ -132,3 +154,79 @@ class SocialRepository:
             user_id, limit, offset,
         )
         return [LikeReceivedOut.model_validate(dict(r)) for r in rows]
+
+    async def is_blocked_either_way(self, a: int, b: int) -> bool:
+        row = await self.connection.fetchrow(
+            """
+            SELECT EXISTS (
+                SELECT 1 FROM blocks
+                WHERE status = 'active'
+                  AND (
+                    (from_user_id = $1 AND to_user_id = $2)
+                    OR (from_user_id = $2 AND to_user_id = $1)
+                  )
+            ) AS blocked
+            """,
+            a, b,
+        )
+        return bool(row["blocked"])
+
+    async def activate_block(self, from_user_id: int, to_user_id: int) -> None:
+        await self.connection.execute(
+            """
+            INSERT INTO blocks (from_user_id, to_user_id, status, created_at, updated_at)
+            VALUES ($1, $2, 'active', NOW(), NOW())
+            ON CONFLICT (from_user_id, to_user_id)
+            DO UPDATE SET
+                status = 'active',
+                updated_at = NOW()
+            WHERE blocks.status IS DISTINCT FROM 'active'
+            """,
+            from_user_id,
+            to_user_id,
+        )
+
+    async def soft_unblock(self, from_user_id: int, to_user_id: int) -> None:
+        await self.connection.execute(
+            """
+            UPDATE blocks
+            SET status = 'inactive', updated_at = NOW()
+            WHERE from_user_id = $1 AND to_user_id = $2 AND status = 'active'
+            """,
+            from_user_id,
+            to_user_id,
+        )
+
+    async def list_blocks(
+        self, user_id: int, limit: int, offset: int
+    ) -> List[BlockedUserOut]:
+        rows = await self.connection.fetch(
+            """
+            SELECT u.id, u.username, u.first_name, u.last_name,
+                   b.updated_at AS blocked_at
+            FROM blocks b
+            JOIN users u ON u.id = b.to_user_id
+            WHERE b.from_user_id = $1 AND b.status = 'active'
+            ORDER BY b.updated_at DESC
+            LIMIT $2 OFFSET $3
+            """,
+            user_id, limit, offset,
+        )
+        return [BlockedUserOut.model_validate(dict(r)) for r in rows]
+
+    async def upsert_report(
+        self, reporter_id: int, target_id: int, reason: Optional[str]
+    ) -> None:
+        await self.connection.execute(
+            """
+            INSERT INTO reports (reporter_id, target_id, reason, created_at, updated_at)
+            VALUES ($1, $2, $3, NOW(), NOW())
+            ON CONFLICT (reporter_id, target_id)
+            DO UPDATE SET
+                reason = EXCLUDED.reason,
+                updated_at = NOW()
+            """,
+            reporter_id,
+            target_id,
+            reason,
+        )

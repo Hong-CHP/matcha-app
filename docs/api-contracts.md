@@ -162,3 +162,75 @@ Requires auth. Target must exist (`USER_NOT_FOUND`). Self is allowed.
 Response: `{ "liked_by_me": bool, "liked_you": bool, "connected": bool }`
 
 `connected` = mutual active likes.
+
+# API contracts — social blocks / reports / presence (WP3)
+
+## POST /social/blocks/{target_user_id}
+
+Requires auth.
+
+Rules:
+
+- soft-activate block (insert `active`, or reactivate inactive row)
+- no self-block (`CANNOT_BLOCK_SELF`)
+
+Response: `{ "blocked": true }`
+
+Errors: `USER_NOT_FOUND`, `CANNOT_BLOCK_SELF`
+
+## DELETE /social/blocks/{target_user_id}
+
+Requires auth.
+
+Rules:
+
+- soft-unblock → status `inactive`
+- idempotent if missing or already inactive
+
+Response: `{ "blocked": false }`
+
+## GET /social/blocks?limit=&offset=
+
+Requires auth.
+
+Response: bare array of `{ id, username, first_name, last_name, blocked_at }` (no email, no total)
+
+- `blocked_at` = `blocks.updated_at`
+- Defaults: `limit=20` (max 100), `offset=0`
+
+## POST /social/reports/{target_user_id}
+
+Requires auth.
+
+Input (JSON):
+
+- `reason` — optional string (max 500)
+
+Rules:
+
+- store-only upsert one row per (reporter, target); refresh reason/`updated_at` on repeat
+- no fame penalty
+- no self-report (`CANNOT_REPORT_SELF`)
+
+Response: `{ "ok": true }`
+
+Errors: `USER_NOT_FOUND`, `CANNOT_REPORT_SELF`
+
+## Interaction + block
+
+`POST /social/visits/{target_user_id}` and `POST /social/likes/{target_user_id}`:
+
+- if either-direction active block → `403` with code `BLOCKED`
+
+## GET /social/relationship/{target_user_id} (WP3 fields)
+
+Also returns:
+
+- `blocked_by_me` — bool
+- `blocked_you` — bool
+- `last_connection` — nullable datetime of target
+- `is_online` — bool (`last_connection` within 900 seconds)
+
+## Presence write
+
+No public write endpoint. Authenticated users/social (and tags if wired) requests touch `users.last_connection` via a shared dependency.

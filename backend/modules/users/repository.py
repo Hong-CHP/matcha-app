@@ -1,14 +1,14 @@
 import asyncpg
+from datetime import datetime
 from modules.users.schemas import (
     UserProfile,
     PhotoOut,
     UserLocationInput,
     UserAccountInput,
 )
-from typing import Any, Optional, Type, TypeVar
+from typing import Any, List, Optional, Type, TypeVar
 from pydantic import BaseModel
 from modules.tags.schemas import TagInput, TagOut
-from typing import List
 from fastapi import UploadFile
 from modules.users.exceptions import (
     FileTooLargeException,
@@ -329,3 +329,16 @@ class UsersRepository:
             user_id,
             delta,
         )
+
+    async def touch_last_connection(self, user_id: int) -> None:
+        await self.connection.execute(
+            "UPDATE users SET last_connection = NOW() WHERE id = $1",
+            user_id,
+        )
+
+    async def get_last_connection(self, user_id: int) -> Optional[datetime]:
+        return await self.connection.fetchval(
+            "SELECT last_connection FROM users WHERE id = $1",
+            user_id,
+        )
+
