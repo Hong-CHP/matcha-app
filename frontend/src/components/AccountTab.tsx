@@ -14,7 +14,7 @@ import type { UserProfile } from "@/types/user"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import edit from "../../assets/edit.png"
+import edit from "@/assets/edit.png"
 import {
     resendVerificationSchema,
     type ResendVerificationValues,
@@ -25,7 +25,9 @@ import { resolveErrorMessage } from "@/i18n/errors"
 
 function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>void}) {
     const { accessToken, logout } = useAuth()
-    const [editing, setEditing] = useState<boolean>(false)
+    const [accountEditing, setAccountEditing] = useState<boolean>(false)
+    const [emailEditing, setEmailEditing] = useState<boolean>(false)
+    const [passwordEditing, setPasswordEditing] = useState<boolean>(false)
     const [serverError, setServerError] = useState<string | null>(null)
     const [emailChangeSent, setEmailChangeSent] = useState<string | null>(null)
     const [passwordChangeCfm, setPasswordChangeCfm] = useState<string | null>(null)
@@ -63,8 +65,8 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
     const onSubmitAccountChange = async (data: AccountValues) => {
         setServerError(null)
         try {
-            setEditing(false)
             await usersApi.editUserAccount(accessToken!, data)
+            setAccountEditing(false)
             onSaved()
         } catch (err) {
             if (err instanceof ApiError) {
@@ -78,8 +80,8 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
     const onSubmitEmailChange = async (newEmail: ResendVerificationValues) => {
         setServerError(null)
         try {
-            setEditing(false)
             const response = await usersApi.requestEmailChange(accessToken!, newEmail)
+            setEmailEditing(false)
             setEmailChangeSent(response.message)
         } catch (err) {
             if (err instanceof ApiError) {
@@ -93,8 +95,8 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
     const onSubmitPasswordChange = async (passwords: PasswordChangeValues) => {
         setServerError(null)
         try {
-            setEditing(false)
             const response = await usersApi.changePassword(accessToken!, passwords)
+            setPasswordEditing(false)
             setPasswordChangeCfm(response.message)
         } catch (err) {
             if (err instanceof ApiError) {
@@ -110,7 +112,12 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
     const handleCancel = () => {
         setServerError(null)
         reset()
-        setEditing(false)
+        if (accountEditing)
+            setAccountEditing(false)
+        if (emailEditing)
+            setEmailEditing(false)
+        if (passwordEditing)
+            setPasswordEditing(false)
     }
 
     return (
@@ -122,7 +129,17 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                       These are your personal secret informations.
                     </CardDescription>
                 </div>
-
+                <div>
+                    <Button variant="outline" onClick={()=>setAccountEditing(true)}>
+                        <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
+                    </Button> 
+                </div>
+                {accountEditing && (
+                    <div>
+                        <Button onClick={handleSubmit(onSubmitAccountChange)}>Save</Button>
+                        <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                    </div>
+                )}
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
                 {serverError && (<FieldError>{serverError}</FieldError>)}
@@ -130,55 +147,37 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                     <FieldGroup>
                         <Field>
                             <FieldLabel htmlFor="usernamer">Username</FieldLabel>
-                            <Input id="username" type="text" disabled={!editing} aria-invalid={!!errors.username}
+                            <Input id="username" type="text" disabled={!accountEditing} aria-invalid={!!errors.username}
                                 {...register("username")}
                             />
                             <FieldError errors={[errors.username]}/>
-                            <Button onClick={()=>setEditing(true)}>{edit}</Button> 
-                            {editing && (
-                                <div>
-                                    <Button onClick={handleSubmit(onSubmitAccountChange)}>Save</Button>
-                                    <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                                </div>
-                            )}
                         </Field>
                         <Field>
                             <FieldLabel htmlFor="first_name">First name</FieldLabel>
-                            <Input id="first_name" type="text" disabled={!editing} aria-invalid={!!errors.first_name}
+                            <Input id="first_name" type="text" disabled={!accountEditing} aria-invalid={!!errors.first_name}
                                 {...register("first_name")}
                             />
-                            <FieldError errors={[errors.first_name]}/>                        
-                            <Button onClick={()=>setEditing(true)}>{edit}</Button> 
-                            {editing && (
-                                <div>
-                                    <Button onClick={handleSubmit(onSubmitAccountChange)}>Save</Button>
-                                    <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                                </div>
-                            )}
+                            <FieldError errors={[errors.first_name]}/>
                         </Field>
                         <Field>
                             <FieldLabel htmlFor="last_name">Last name</FieldLabel>
-                            <Input id="last_name" type="text" disabled={!editing} aria-invalid={!!errors.last_name}
+                            <Input id="last_name" type="text" disabled={!accountEditing} aria-invalid={!!errors.last_name}
                                 {...register("last_name")}
                             />                     
-                            <FieldError errors={[errors.last_name]}/>   
-                            <Button onClick={()=>setEditing(true)}>{edit}</Button> 
-                            {editing && (
-                                <div>
-                                    <Button onClick={handleSubmit(onSubmitAccountChange)}>Save</Button>
-                                    <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                                </div>
-                            )}
+                            <FieldError errors={[errors.last_name]}/>  
                         </Field>
                         <Field>
                             <FieldLabel htmlFor="current-email">Current mail</FieldLabel>
                             <p>{profile.email}</p>
-                            <Button onClick={()=>setEditing(true)}>{edit}</Button> 
+                            {emailChangeSent && (<p>{emailChangeSent}</p>)}
+                            <Button variant="outline" onClick={()=>setEmailEditing(true)}>
+                                <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
+                            </Button> 
                         </Field>
-                        {editing && (
+                        {emailEditing && (
                             <Field>
                                 <FieldLabel htmlFor="new-email">Change email address</FieldLabel>
-                                <Input id="user-email" type="email" disabled={!editing}
+                                <Input id="user-email" type="email" disabled={!emailEditing}
                                     aria-invalid={!!emailForm.formState.errors.email}
                                     {...emailForm.register("email")}
                                     />
@@ -186,20 +185,22 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                                 <div>
                                     <Button onClick={emailForm.handleSubmit(onSubmitEmailChange)}>Send verification</Button>
                                     <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                                    {emailChangeSent && (<p>{emailChangeSent}</p>)}
+                                    
                                 </div>
                             </Field>
                         )}
                         <Field>
                             <FieldLabel>Reset your password</FieldLabel>
-                            <button onClick={()=>setEditing(true)}>{edit}</button>
+                            <Button variant="outline" onClick={()=>setPasswordEditing(true)}>
+                                <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
+                            </Button>
                         </Field>
-                        {editing && (
+                        {passwordEditing && (
                             <Field>
                                 <div>
                                     <div>
                                         <FieldLabel htmlFor="current-pwd">Current password</FieldLabel>
-                                        <Input id="current-pwd" type="password" disabled={!editing}
+                                        <Input id="current-pwd" type="password" disabled={!passwordEditing}
                                             aria-invalid={!!passwordForm.formState.errors.current_password}
                                             {...passwordForm.register("current_password")}
                                         />
@@ -207,7 +208,7 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                                     </div>
                                     <div>
                                         <FieldLabel htmlFor="reset-pwd">New password</FieldLabel>
-                                        <Input id="reset-pwd" type="password" disabled={!editing}
+                                        <Input id="reset-pwd" type="password" disabled={!passwordEditing}
                                             aria-invalid={!!passwordForm.formState.errors.new_password}
                                             {...passwordForm.register("new_password")}
                                         />
@@ -215,14 +216,14 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                                     </div>
                                     <div>
                                         <FieldLabel htmlFor="reset-pwd">Confirm new password</FieldLabel>
-                                        <Input id="reset-pwd" type="password" disabled={!editing}
+                                        <Input id="reset-pwd" type="password" disabled={!passwordEditing}
                                             aria-invalid={!!passwordForm.formState.errors.confirm_password}
                                             {...passwordForm.register("confirm_password")}
                                         />
                                         <FieldError errors={[passwordForm.formState.errors.confirm_password]}/>
                                     </div>
                                     <div>
-                                        <button onClick={passwordForm.handleSubmit(onSubmitPasswordChange)}>Reset</button>
+                                        <Button onClick={passwordForm.handleSubmit(onSubmitPasswordChange)}>Reset</Button>
                                         <Button variant="outline" onClick={handleCancel}>Cancel</Button>
                                         {passwordChangeCfm && (<p>{passwordChangeCfm}</p>)}
                                     </div>

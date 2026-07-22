@@ -58,16 +58,6 @@ async def patch_me_account(
 ) -> UserProfile:
     return await service.update_account(current_user_id, payload)
 
-# @users_router.patch(
-#     "/users/me/account", response_model=UserProfile
-# )
-# async def patch_accout(
-#     payload: EditAccoutInput,
-#     current_user_id: int = Depends(get_current_user_id),
-#     service: UsersService = Depends(get_users_service)
-#     ) -> UserProfile:
-#     return await service.patch_accout(current_user_id, payload)
-
 @users_router.post(
     "/me/tags", response_model=TagOut
 )

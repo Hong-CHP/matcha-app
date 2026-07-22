@@ -26,6 +26,7 @@ import { useAuth } from "@/auth/useAuth"
 import * as usersApi from "../api/users"
 import { ApiError } from "@/api/client"
 import { resolveErrorMessage } from "@/i18n/errors"
+import edit from "@/assets/edit.png"
 
 function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>void}) {
     const { accessToken, logout } = useAuth()
@@ -110,7 +111,9 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                 <CardDescription>These informations will be shown to public.</CardDescription>
             </div>
             <div>
-                <Button onClick={()=>setEditing(true)}>Edit</Button>
+                <Button variant="outline" onClick={()=>setEditing(true)}>
+                    <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
+                </Button>
             </div>
             {editing && (
                 <div>
@@ -136,7 +139,7 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                         render={({ field, fieldState })=>(
                             <Field>
                                 <RadioGroup
-                                    value={ field.value } onValueChange={field.onChange}>
+                                    value={ field.value } onValueChange={field.onChange} disabled={!editing}>
                                     <p>Gender</p>
                                     <div>
                                         <RadioGroupItem value="male" id="male" />
@@ -159,7 +162,7 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                         control={control}
                         render={({field, fieldState})=>(
                         <Field>
-                            <RadioGroup value={ field.value } onValueChange={field.onChange}>
+                            <RadioGroup value={ field.value } onValueChange={field.onChange} disabled={!editing}>
                                 <p>Sexual_preference</p>
                                     <div>
                                         <RadioGroupItem value="man" id="man" />
