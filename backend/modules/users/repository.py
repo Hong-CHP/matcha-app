@@ -1,7 +1,9 @@
 import asyncpg
 from modules.users.schemas import (
     UserProfile,
-    PhotoOut
+    PhotoOut,
+    UserLocationInput,
+    UserAccountInput,
 )
 from typing import Any, Optional, Type, TypeVar
 from pydantic import BaseModel
@@ -11,7 +13,8 @@ from fastapi import UploadFile
 from modules.users.exceptions import (
     FileTooLargeException,
     InvalidPhotoTypeException,
-    MaxPhotosReachedException
+    MaxPhotosReachedException,
+    EmailAlreadyTakenException,
 )
 import imghdr
 import uuid
@@ -30,7 +33,8 @@ T = TypeVar("T", bound=BaseModel)
 
 USER_COLUMNS = """
     id, email, username, first_name, last_name, is_verified, created_at,
-    gender, sexual_preference, age, bio
+    gender, sexual_preference, age, bio,
+    fame_rating, latitude, longitude, location_label, location_consent, last_connection
 """
 
 class UsersRepository:
@@ -62,7 +66,8 @@ class UsersRepository:
                 set gender = $2, sexual_preference = $3, age = $4, bio = $5
                 WHERE id = $1
                 RETURNING id, email, username, first_name, last_name, is_verified, created_at,
-                gender, sexual_preference, age, bio
+                gender, sexual_preference, age, bio,
+                fame_rating, latitude, longitude, location_label, location_consent, last_connection
                 """
         return await self._fetch_one(
             UserProfile,
@@ -73,6 +78,59 @@ class UsersRepository:
             payload.age,
             payload.bio,
             )
+
+    async def update_location(
+            self,
+            current_user_id: int,
+            payload: UserLocationInput,
+    ) -> Optional[UserProfile]:
+        query = """
+                UPDATE users
+                SET latitude = $2,
+                    longitude = $3,
+                    location_label = $4,
+                    location_consent = $5
+                WHERE id = $1
+                RETURNING id, email, username, first_name, last_name, is_verified, created_at,
+                gender, sexual_preference, age, bio,
+                fame_rating, latitude, longitude, location_label, location_consent, last_connection
+                """
+        return await self._fetch_one(
+            UserProfile,
+            query,
+            current_user_id,
+            payload.latitude,
+            payload.longitude,
+            payload.location_label,
+            payload.location_consent,
+        )
+
+    async def update_account(
+            self,
+            current_user_id: int,
+            payload: UserAccountInput,
+    ) -> Optional[UserProfile]:
+        query = """
+                UPDATE users
+                SET first_name = $2,
+                    last_name = $3,
+                    email = $4
+                WHERE id = $1
+                RETURNING id, email, username, first_name, last_name, is_verified, created_at,
+                gender, sexual_preference, age, bio,
+                fame_rating, latitude, longitude, location_label, location_consent, last_connection
+                """
+        try:
+            return await self._fetch_one(
+                UserProfile,
+                query,
+                current_user_id,
+                payload.first_name,
+                payload.last_name,
+                payload.email,
+            )
+        except asyncpg.UniqueViolationError:
+            raise EmailAlreadyTakenException(payload.email) from None
     
     async def add_one_tag(
             self,

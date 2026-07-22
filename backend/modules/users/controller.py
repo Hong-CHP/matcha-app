@@ -8,6 +8,8 @@ from modules.users.schemas import (
     UserProfile,
     UserProfileInput,
     PhotoOut,
+    UserLocationInput,
+    UserAccountInput,
 )
 from modules.tags.schemas import TagOut, TagInput
 from typing import List
@@ -39,6 +41,22 @@ async def patch_me(
     service: UsersService = Depends(get_users_service)
     ) -> UserProfile:
     return await service.patch_profile(current_user_id, payload)
+
+@users_router.patch("/me/location", response_model=UserProfile)
+async def patch_me_location(
+    payload: UserLocationInput,
+    current_user_id: int = Depends(get_current_user_id),
+    service: UsersService = Depends(get_users_service),
+) -> UserProfile:
+    return await service.update_location(current_user_id, payload)
+
+@users_router.patch("/me/account", response_model=UserProfile)
+async def patch_me_account(
+    payload: UserAccountInput,
+    current_user_id: int = Depends(get_current_user_id),
+    service: UsersService = Depends(get_users_service),
+) -> UserProfile:
+    return await service.update_account(current_user_id, payload)
 
 @users_router.post(
     "/me/tags", response_model=TagOut

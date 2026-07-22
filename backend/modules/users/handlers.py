@@ -5,14 +5,18 @@ from modules.users.exceptions import (
     UserNotFoundException,
     FileTooLargeException,
     InvalidPhotoTypeException,
-    MaxPhotosReachedException
+    MaxPhotosReachedException,
+    InvalidLocationException,
+    EmailAlreadyTakenException,
 )
 
 _EXCEPTION_STATUS = {
     UserNotFoundException: status.HTTP_404_NOT_FOUND,
     FileTooLargeException: status.HTTP_413_CONTENT_TOO_LARGE,
     InvalidPhotoTypeException: status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-    MaxPhotosReachedException: status.HTTP_406_NOT_ACCEPTABLE
+    MaxPhotosReachedException: status.HTTP_406_NOT_ACCEPTABLE,
+    InvalidLocationException: status.HTTP_400_BAD_REQUEST,
+    EmailAlreadyTakenException: status.HTTP_409_CONFLICT,
 }
 
 
