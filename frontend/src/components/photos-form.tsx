@@ -26,7 +26,6 @@ function PhotosForm({
     handlePatchPhoto,
     handleDeletePhoto,
     onFinish,
-    ...props
 } : PhotosFormProps) {
     const [ modify, setModify ] = useState(false)
     const [ photoId, setPhotoId] = useState<number | null>(null)
