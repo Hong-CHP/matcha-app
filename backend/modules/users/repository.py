@@ -423,4 +423,3 @@ class UsersRepository:
             "SELECT last_connection FROM users WHERE id = $1",
             user_id,
         )
-

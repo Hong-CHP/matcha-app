@@ -15,11 +15,6 @@ from modules.tags.exceptions import TagContentProfanity
 from modules.tags.service import profanity
 from typing import List
 from fastapi import UploadFile
-import uuid
-from modules.auth.exceptions import (
-    InvalidVerificationTokenException
-)
-
 
 class UsersService:
     def __init__(
@@ -168,23 +163,3 @@ class UsersService:
             current_user_id: int
         ) -> PhotoOut:
         return await self.repository.patch_photo_by_new(photo_id, file, current_user_id)
-
-    async def request_email_change(
-            self,
-            current_user_id: int,
-            new_email: str
-        ) -> None:
-        email_token = str(uuid.uuid4())
-        user = await self.repository.request_email_change(current_user_id, new_email, email_token)
-        if not user:
-            raise UserNotFoundException()
-        
-    async def confirm_email_change(
-        self,
-        token: str,
-        current_user_id: int
-        ) -> UserProfile:
-        user = await self.repository.confirm_email_change(current_user_id, token)
-        if not user:
-            raise InvalidVerificationTokenException()
-        return user

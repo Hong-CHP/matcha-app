@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from pydantic import BaseModel, EmailStr, Field, model_validator, field_validator
 from datetime import datetime
 from typing import Literal, Optional
+from modules.auth.schemas import validate_password_strength
 
 class UserProfile(BaseModel):
     id: int
@@ -62,3 +63,12 @@ class EditAccoutInput(BaseModel):
     first_name: str 
     last_name: str
 
+class PasswordChangeInput(BaseModel):
+    current_password: str
+    new_password: str
+    confirm_password: str
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        return validate_password_strength(v)

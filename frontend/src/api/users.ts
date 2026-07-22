@@ -7,7 +7,7 @@ import {
     apiPutFormData,
 } from "./client"
 import type { UserProfile, Tag, TagInput, Photo } from "../types/user"
-import type { AccountValues, ProfileValues } from "@/schemas/users"
+import type { AccountValues, PasswordChangeValues, ProfileValues } from "@/schemas/users"
 import type { ResendVerificationValues } from "@/schemas/auth"
 
 export async function getUserProfile(token: string): Promise<UserProfile> {
@@ -32,6 +32,10 @@ export async function requestEmailChange(token: string, newEmail: ResendVerifica
 
 export async function confirmEmailChange(token: string): Promise<UserProfile> {
     return apiGet<UserProfile>(`/users/me/email-change/confirm/${token}`)
+}
+
+export async function changePassword(token: string, passwords: PasswordChangeValues): Promise<{message: string}> {
+    return apiPatch<{message: string}>("/users/me/password-change", passwords, {token})
 }
 
 export async function getMyTags(token: string): Promise<Tag[]> {

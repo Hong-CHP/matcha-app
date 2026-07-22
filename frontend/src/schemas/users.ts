@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { passwordSchema } from './auth'
 
 export const profileSchema = z.object({
     age: z.number().min(18, "You must be at least 18").max(100),
@@ -29,6 +30,20 @@ export const accountSchema = z.object({
   last_name: z.string().min(1, 'Last name is required'),
 })
 
+export const passwordchangeSchema = z.object({
+    current_password: passwordSchema,
+    new_password: passwordSchema,
+    confirm_password: passwordSchema,
+}).refine(
+    (data) =>
+        data.confirm_password === data.new_password,
+    {
+        path: ["confirm_password"],
+        message: "Your passwords are not the same."
+    }
+)
+
 export type ProfileValues = z.infer<typeof profileSchema>
 export type EditProfileValues = z.infer<typeof editProfileSchema>
 export type AccountValues = z.infer<typeof accountSchema>
+export type PasswordChangeValues = z.infer<typeof passwordchangeSchema>

@@ -1,4 +1,4 @@
-import useUserProfile from "@/hooks/useUserProfile"
+import useUserProfile from "@/users/useUserProfile"
 import {
   Avatar,
   AvatarBadge,
@@ -75,25 +75,6 @@ export function ProfileTabs({profile, onSaved} : {profile : UserProfile, onSaved
             <TabsContent value="account">
                 <AccountTab profile={profile} onSaved={onSaved}/>
             </TabsContent>
-                                    <Field>
-                            <FieldLabel>Reset your password</FieldLabel>
-                            <button>{edit}</button>
-                            <div>
-                                <div>
-                                    <Label htmlFor="reset-pwd">Current password</Label>
-                                    <Input id="reset-pwd" name="reset-pwd" type="password"/>
-                                </div>
-                                <div>
-                                    <Label htmlFor="reset-pwd">New password</Label>
-                                    <Input id="reset-pwd" name="reset-pwd" type="password"/>
-                                </div>
-                                <div>
-                                    <Label htmlFor="reset-pwd">Confirm new password</Label>
-                                    <Input id="reset-pwd" name="reset-pwd" type="password"/>
-                                </div>
-                                <button>Reset</button>
-                            </div>
-                        </Field>
             <TabsContent value="notifications">
             <Card>
                 <CardHeader>
