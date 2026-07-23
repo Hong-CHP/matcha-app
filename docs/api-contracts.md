@@ -85,15 +85,108 @@ liked-you/connected/blocked flags.
 
 Exclude: email, password, tokens.
 
-# API contracts — discovery lists (document now; WP4 implements)
+# API contracts — discovery suggest / search (WP4)
 
-## Suggest / search pagination
+## Shared behavior
 
-- `limit` — page size
-- `offset` — zero-based offset
+Requires auth. Presence: authenticated discovery requests touch `users.last_connection` via the shared dependency (same as users/social).
 
-Sort keys (later): `age`, `distance`, `fame`, `common_tags`
-Filter keys (later): age range, fame range, distance/location, tags
+### Candidate pool (both endpoints)
+
+Exclude:
+
+- self
+- users who are not profile-completed (twin of `UsersService.get_profile`): `bio`, `age`, `gender`, `sexual_preference` all set **and** at least one `user_tags` row **and** at least one `user_photos` row
+- either-direction **active** block with the viewer (same semantics as social `is_blocked_either_way`)
+
+### Mutual orientation (both, always on)
+
+Viewer interested in candidate gender **and** candidate interested in viewer gender.
+
+- Preference → genders: `man` → `{male}`, `woman` → `{female}`, `bisexual` → `{male, female}`
+- Gender `other` matches only when the other party’s preference is `bisexual`
+
+### Distance
+
+Haversine km (earth radius 6371). `distance_km` is `null` if **either** viewer or candidate lacks coordinates. Values rounded to 1 decimal.
+
+### Pagination / response shape
+
+- `limit` — default 20, max 100
+- `offset` — default 0
+- Response: **bare array** of `DiscoveryProfileCard` (no total count)
+
+### Sort
+
+`sort`: `age` | `distance` | `fame` | `common_tags`  
+`order`: `asc` | `desc`  
+Defaults when `order` omitted: age asc, distance asc, fame desc, common_tags desc.  
+Final tie-breaker always `id` ascending.
+
+- Explicit `sort=distance` without viewer coordinates → `400` `LOCATION_REQUIRED`
+- Suggest **or search default** (no `sort`) without viewer coordinates → silent fallback to fame → common_tags → id (not an error)
+
+### DiscoveryProfileCard
+
+```json
+{
+  "id": 2,
+  "username": "alice",
+  "first_name": "Alice",
+  "last_name": "A",
+  "age": 28,
+  "gender": "female",
+  "fame_rating": 12,
+  "distance_km": 3.4,
+  "common_tags_count": 2,
+  "location_label": "Paris"
+}
+```
+
+- `distance_km` — number or null
+- `location_label` — string or null
+- No email, photos array, or relationship flags on the card (use `GET /social/relationship/{id}`)
+
+### Errors
+
+| Code | HTTP | When |
+|------|------|------|
+| `LOCATION_REQUIRED` | 400 | `max_distance_km` set, or explicit `sort=distance`, without viewer coordinates |
+| `INVALID_FILTER` | 400 | Bad age/fame ranges, unknown sort, invalid `tag_ids` |
+
+Viewer missing `gender` or `sexual_preference` (**orientation-unusable**): return empty array `[]` (not 403). Distinct from candidate pool completion (which also requires tags + photos).
+
+---
+
+## GET /discovery/suggest
+
+Query (`SuggestQueryParams` only — no age/fame/distance/tag filters):
+
+- `limit`, `offset`, optional `sort`, optional `order`
+
+Rules:
+
+- candidate pool + mutual orientation
+- no age/fame/tag filters
+- default sort: distance → fame → common_tags → id; if viewer has no coords: fame → common_tags → id
+
+Response: bare array of `DiscoveryProfileCard`
+
+---
+
+## GET /discovery/search
+
+Query (`SearchQueryParams`):
+
+- `limit`, `offset`, optional `sort`, optional `order`
+- optional `age_min` / `age_max` (inclusive, candidate age)
+- optional `fame_min` / `fame_max` (inclusive, 0–100)
+- optional `max_distance_km` (> 0): viewer must have coordinates else `LOCATION_REQUIRED`; drop candidates with null distance and those beyond max
+- optional `tag_ids` — **repeated** query params (`tag_ids=1&tag_ids=2`); AND semantics (candidate must have all); omit or empty = no tag filter
+
+Invalid ranges (`age_min > age_max`, etc.) → `INVALID_FILTER`.
+
+Response: bare array of `DiscoveryProfileCard`
 
 # API contracts — social visits / likes / connected (WP2)
 
