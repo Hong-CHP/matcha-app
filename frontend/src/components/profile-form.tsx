@@ -29,7 +29,7 @@ function ProfileForm({
 }: ProfileFormProps) {
     return (
         <>
-            <form onSubmit={onSubmit}>
+            <form onSubmit={onSubmit} className="flex flex-col gap-4 max-w-md">
                 <Controller 
                     name="gender"
                     control={control}
@@ -37,19 +37,21 @@ function ProfileForm({
                         <>
                             <RadioGroup
                                 value={field.value?? ""} onValueChange={field.onChange}>
-                                <p>Please select your gender: </p>
-                                <div>
-                                    <RadioGroupItem value="male" id="male" />
-                                    <Label htmlFor="male">Male</Label>
-                                </div>        
-                                <div>
-                                    <RadioGroupItem value="female" id="female" />
-                                    <Label htmlFor="female">Female</Label>
-                                </div>        
-                                <div>
-                                    <RadioGroupItem value="other" id="other" />
-                                    <Label htmlFor="other">Other</Label>
-                                </div>        
+                                <div className="flex flex-row flex-wrap min-[600px]:flex-nowrap justify-bewteen items-center gap-6">
+                                    <p>Please select your gender: </p>
+                                    <div className="flex flex-row items-center gap-2">
+                                        <RadioGroupItem value="male" id="male" />
+                                        <Label htmlFor="male">Male</Label>
+                                    </div>      
+                                    <div className="flex flex-row items-center gap-2">
+                                        <RadioGroupItem value="female" id="female" />
+                                        <Label htmlFor="female">Female</Label>
+                                    </div>
+                                    <div className="flex flex-row items-center gap-2">
+                                        <RadioGroupItem value="other" id="other" />
+                                        <Label htmlFor="other">Other</Label>
+                                    </div>
+                                </div>
                             </RadioGroup>
                             <FieldError errors={[fieldState.error]} />
                         </>
@@ -62,19 +64,21 @@ function ProfileForm({
                         <>
                             <RadioGroup
                                 value={field.value?? ""} onValueChange={field.onChange}>
-                                    <p>Please select your sexual preference: </p>
-                                    <div>
-                                        <RadioGroupItem value="man" id="man" />
-                                        <Label htmlFor="man">Man</Label>
-                                    </div>        
-                                    <div>
-                                        <RadioGroupItem value="woman" id="woman" />
-                                        <Label htmlFor="woman">Woman</Label>
-                                    </div>        
-                                    <div>
-                                        <RadioGroupItem value="bisexual" id="bisexual" />
-                                        <Label htmlFor="bisexual">Bisexual</Label>
-                                    </div>        
+                                    <div className="flex flex-row flex-wrap min-[600px]:flex-nowrap justify-bewteen items-center gap-6">
+                                        <p>Please select your sexual preference: </p>
+                                        <div className="flex flex-row items-center gap-2">
+                                            <RadioGroupItem value="man" id="man" />
+                                            <Label htmlFor="man">Man</Label>
+                                        </div>        
+                                        <div className="flex flex-row items-center gap-2">
+                                            <RadioGroupItem value="woman" id="woman" />
+                                            <Label htmlFor="woman">Woman</Label>
+                                        </div>        
+                                        <div className="flex flex-row items-center gap-2">
+                                            <RadioGroupItem value="bisexual" id="bisexual" />
+                                            <Label htmlFor="bisexual">Bisexual</Label>
+                                        </div>        
+                                    </div>
                             </RadioGroup>
                             <FieldError errors={[fieldState.error]} />
                         </>
@@ -82,17 +86,20 @@ function ProfileForm({
                 />
                 <FieldGroup>
                     <Field>
-                        <FieldLabel htmlFor="age">Age</FieldLabel>
-                        <Input
-                            id="age"
-                            type="number"
-                            aria-invalid={!!errors.age}
-                            {...register('age', { valueAsNumber: true })}
-                            />
-                        <FieldError errors={[errors.age]} />
+                        <div className="flex flex-row gap-3 items-center">
+                            <FieldLabel htmlFor="age">Age</FieldLabel>
+                            <Input
+                                id="age"
+                                type="number"
+                                aria-invalid={!!errors.age}
+                                className="w-20"
+                                {...register('age', { valueAsNumber: true })}
+                                />
+                            <FieldError errors={[errors.age]} />
+                        </div>
                     </Field>
                     <Field>
-                        <FieldLabel htmlFor="user_bio">Bio: </FieldLabel>
+                        <FieldLabel htmlFor="user_bio">Bio</FieldLabel>
                         <textarea id="user_bio"
                             placeholder="Please describe yourself..."
                             aria-invalid={!!errors.bio}

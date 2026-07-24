@@ -57,7 +57,7 @@ function PhotosForm({
 
     return (
         <>
-            <FieldGroup>
+            <FieldGroup className="flex flex-col gap-4 max-w-md">
                 <Field>
                     <FieldLabel htmlFor="user_photos">Please upload your photos:</FieldLabel>
                     <FieldDescription>Maximun 5 photos, and please choose one as your profile photo.</FieldDescription>
@@ -105,12 +105,14 @@ function PhotosForm({
                     />
                 </Field>
                 {photoList.length > 0 && (
-                    photoList.map(p=>(
-                        <div key={p.id} style={{position: "relative"}}>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {
+                        photoList.map(p=>(
+                            <div key={p.id} style={{position: "relative"}}>
                             <img
                                 src={`${API_BASE_URL}${p.url}`}
                                 onClick={()=>handleModify(p.id)}
-                                className="w-54 h-54 object-cover rounded cursor-pointer"
+                                className="w-34 h-34 md:w-54 md:h-54 object-cover rounded cursor-pointer"
                                 />
                             {p.is_profile_photo && (
                                 <Badge variant="secondary" className="absolute top-1 left-1">
@@ -118,7 +120,9 @@ function PhotosForm({
                                 </Badge>
                             )}
                         </div>
-                    ))
+                        ))
+                    }
+                    </div>
                 )}
                 {showFinish && onFinish && (
                     <Field>

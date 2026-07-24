@@ -32,19 +32,24 @@ function TagsForm({
             <FieldGroup>
                 <Field>
                     <FieldLabel htmlFor="user_tags">Choose your personal tags:</FieldLabel>
-                    <Input 
-                        id="user_tags"
-                        type="text"
-                        value={inputValue?? ""}
-                        onChange={(e)=>handleInput(e.target.value)}
-                    />
-                    {tagsSearchList.length > 0 && (
-                        tagsSearchList.map(tag=>(
-                        <Button key={tag.id} onClick={()=>handleAddTag(tag.name)}>
-                            {tag.name} 
-                        </Button>))
-                    )}
-                    <Button onClick={()=>handleAddTag(inputValue)}>Add</Button>
+                    <div className="flex flex-row gap-1">
+                        <Input 
+                            id="user_tags"
+                            type="text"
+                            value={inputValue?? ""}
+                            onChange={(e)=>handleInput(e.target.value)}
+                            />
+                        <Button onClick={()=>handleAddTag(inputValue)}>Add</Button>
+                    </div>
+                        <div className="flex">
+                        {tagsSearchList.length > 0 && (
+                                tagsSearchList.map(tag=>(
+                                    <Button key={tag.id} onClick={()=>handleAddTag(tag.name)}>
+                                    {tag.name} 
+                                    </Button>
+                                ))
+                            )}
+                        </div>
                 </Field>
                 <Field>
                     {tagsList.length > 0 && (
@@ -55,10 +60,13 @@ function TagsForm({
                         ))
                     )}
                 </Field>
+                {tagsList.length < 1 && (
+                    <FieldError>You must add at least one tag</FieldError>
+                )}
                 {serverError && <FieldError>{serverError}</FieldError>}
                 {showNextStep && nextStep && (
                     <Field>
-                        <Button onClick={()=>nextStep()}>Next</Button>
+                        <Button onClick={()=>nextStep()} disabled={tagsList.length < 1}>Next</Button>
                     </Field>
                 )}
             </FieldGroup>          

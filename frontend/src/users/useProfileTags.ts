@@ -44,6 +44,7 @@ function useProfileTags() {
     }
 
     const handleAddTag = async (tag_name: string) => {
+        if (!tag_name || tag_name.trim().length == 0) return
         setServerError(null)
         try {
             const newTag: Tag = await postProfileTags(accessToken!, {name: tag_name})
