@@ -105,3 +105,20 @@ $RECYCLE.BIN/
 *.tmp
 *.orig
 
+# Design-review screenshots: regenerated on demand, never reviewed in a diff.
+tools/preview/shots/
+
+#─────────────────────────────────────────────────────────────
+# Docs (local planning / contracts — not in remote)
+#─────────────────────────────────────────────────────────────
+
+docs/
+.session/
+
+#─────────────────────────────────────────────────────────────
+# Agent / local tooling
+#─────────────────────────────────────────────────────────────
+
+.agents/
+.claude/
+skills-lock.json

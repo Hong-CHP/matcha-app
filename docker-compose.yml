@@ -16,6 +16,9 @@ services:
       - ./backend/database/migrations/0004_add_users_profile_fields.sql:/docker-entrypoint-initdb.d/0004_add_users_profile_fields.sql
       - ./backend/database/migrations/0005_add_tags_and_user_tags.sql:/docker-entrypoint-initdb.d/0005_add_tags_and_user_tags.sql
       - ./backend/database/migrations/0006_add_user_photos.sql:/docker-entrypoint-initdb.d/0006_add_user_photos.sql
+      - ./backend/database/migrations/0007_add_location_label_and_consent.sql:/docker-entrypoint-initdb.d/0007_add_location_label_and_consent.sql
+      - ./backend/database/migrations/0008_add_likes_and_visits.sql:/docker-entrypoint-initdb.d/0008_add_likes_and_visits.sql
+      - ./backend/database/migrations/0009_add_blocks_and_reports.sql:/docker-entrypoint-initdb.d/0009_add_blocks_and_reports.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-matcha}"]
       interval: 5s

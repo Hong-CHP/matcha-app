@@ -5,9 +5,14 @@ import datetime
 import time
 import jwt
 from core.config import settings
-from modules.users.schemas import UserProfile
+from modules.users.schemas import UserProfile, UserLocationInput, UserAccountInput
 from modules.users.service import UsersService
 from modules.users.controller import get_users_service
+from modules.users.exceptions import EmailAlreadyTakenException
+from core.auth import get_current_user_id
+from core.presence import get_current_user_id_and_touch
+from modules.auth.controller import get_auth_service
+from modules.auth.schemas import CurrentUserResponse
 
 
 client = TestClient(app)
@@ -31,6 +36,7 @@ class FakeRepository:
         self.users = users
         self.tags = [1]
         self.photos = [1]
+        self.raise_on_account = None
 
     async def get_user_by_id(self, current_user_id: int):
         return self.users.get(current_user_id)
@@ -40,6 +46,44 @@ class FakeRepository:
 
     async def get_my_photos(self, current_user_id: int):
         return self.photos
+
+    async def update_location(self, current_user_id: int, payload: UserLocationInput):
+        user = self.users.get(current_user_id)
+        if not user:
+            return None
+        updated = user.model_copy(
+            update={
+                "latitude": payload.latitude,
+                "longitude": payload.longitude,
+                "location_label": payload.location_label,
+                "location_consent": payload.location_consent,
+            }
+        )
+        self.users[current_user_id] = updated
+        return updated
+
+    async def update_account(
+        self,
+        current_user_id: int,
+        payload: UserAccountInput,
+        *,
+        reverify_email: bool = False,
+    ):
+        if self.raise_on_account is not None:
+            raise self.raise_on_account
+        user = self.users.get(current_user_id)
+        if not user:
+            return None
+        updated = user.model_copy(
+            update={
+                "first_name": payload.first_name,
+                "last_name": payload.last_name,
+                "email": payload.email,
+                "is_verified": False if reverify_email else user.is_verified,
+            }
+        )
+        self.users[current_user_id] = updated
+        return updated
 
 @pytest.fixture
 def fake_user():
@@ -55,6 +99,8 @@ def fake_user():
         sexual_preference = "man",
         age = 24,
         bio = "hello",
+        fame_rating = 0,
+        location_consent = False,
     )
 
 @pytest.fixture
@@ -63,6 +109,7 @@ def override_service(fake_user):
     fake_service = UsersService(fake_repo)
 
     app.dependency_overrides[get_users_service] = lambda: fake_service
+    app.dependency_overrides[get_current_user_id_and_touch] = get_current_user_id
     yield fake_service
     app.dependency_overrides.clear()
 
@@ -107,3 +154,147 @@ class TestGetMe:
         assert body["id"] == fake_user.id
         assert body["email"] == fake_user.email
         assert body["is_profile_completed"] is True
+        assert body["fame_rating"] == 0
+        assert body["location_consent"] is False
+        assert "latitude" in body
+        assert "longitude" in body
+        assert "location_label" in body
+        assert "last_connection" in body
+
+
+class TestPatchLocation:
+    def test_location_update_succeeds(self, override_service):
+        token = make_token(user_id=1)
+        response = client.patch(
+            "/users/me/location",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "latitude": 48.85,
+                "longitude": 2.35,
+                "location_label": "Paris",
+                "location_consent": True,
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["latitude"] == 48.85
+        assert body["longitude"] == 2.35
+        assert body["location_label"] == "Paris"
+        assert body["location_consent"] is True
+
+    def test_location_update_rejects_without_consent(self, override_service):
+        token = make_token(user_id=1)
+        response = client.patch(
+            "/users/me/location",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "latitude": 48.85,
+                "longitude": 2.35,
+                "location_consent": False,
+            },
+        )
+        assert response.status_code == 400
+        assert response.json()["code"] == "INVALID_LOCATION"
+
+
+class TestPatchAccount:
+    def test_account_update_succeeds(self, override_service):
+        token = make_token(user_id=1)
+        response = client.patch(
+            "/users/me/account",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "first_name": "New",
+                "last_name": "Name",
+                "email": "aaa@gmail.com",
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["first_name"] == "New"
+        assert body["last_name"] == "Name"
+        assert body["email"] == "aaa@gmail.com"
+        assert body["is_verified"] is True
+
+    def test_account_email_change_marks_unverified(self, override_service):
+        token = make_token(user_id=1)
+        response = client.patch(
+            "/users/me/account",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "first_name": "Ann",
+                "last_name": "MOMO",
+                "email": "new@example.com",
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["email"] == "new@example.com"
+        assert body["is_verified"] is False
+
+    def test_account_update_email_taken(self, fake_user):
+        fake_repo = FakeRepository({1: fake_user})
+        fake_repo.raise_on_account = EmailAlreadyTakenException("taken@example.com")
+        fake_service = UsersService(fake_repo)
+        app.dependency_overrides[get_users_service] = lambda: fake_service
+        app.dependency_overrides[get_current_user_id_and_touch] = get_current_user_id
+        try:
+            token = make_token(user_id=1)
+            response = client.patch(
+                "/users/me/account",
+                headers={"Authorization": f"Bearer {token}"},
+                json={
+                    "first_name": "Ann",
+                    "last_name": "MOMO",
+                    "email": "taken@example.com",
+                },
+            )
+        finally:
+            app.dependency_overrides.clear()
+        assert response.status_code == 409
+        assert response.json()["code"] == "EMAIL_TAKEN"
+
+    def test_location_rejects_out_of_range_coords(self, override_service):
+        token = make_token(user_id=1)
+        response = client.patch(
+            "/users/me/location",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "latitude": 999,
+                "longitude": 2.35,
+                "location_consent": True,
+            },
+        )
+        assert response.status_code == 422
+
+
+class TestAuthMeStaysThin:
+    def test_auth_me_omits_location_and_fame(self):
+        class FakeAuthService:
+            async def get_current_user(self, user_id: int) -> CurrentUserResponse:
+                return CurrentUserResponse(
+                    id=1,
+                    username="alice",
+                    email="a@b.com",
+                    first_name="A",
+                    last_name="B",
+                    email_verified=True,
+                    profile_completed=True,
+                    has_password=True,
+                )
+
+        app.dependency_overrides[get_current_user_id] = lambda: 1
+        app.dependency_overrides[get_auth_service] = lambda: FakeAuthService()
+        try:
+            response = client.get("/auth/me")
+        finally:
+            app.dependency_overrides.clear()
+
+        assert response.status_code == 200
+        body = response.json()
+        assert "fame_rating" not in body
+        assert "latitude" not in body
+        assert "longitude" not in body
+        assert "location_label" not in body
+        assert "location_consent" not in body
+        assert "profile_completed" in body

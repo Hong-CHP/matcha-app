@@ -26,7 +26,6 @@ function TagsForm({
     handleAddTag,
     handleDeleteTag,
     nextStep,
-    ...props
 }: TagsFormProps) {
     return (
         <>

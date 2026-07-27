@@ -1,9 +1,14 @@
 from modules.users.repository import UsersRepository
 from modules.users.schemas import (
     UserProfile,
-    PhotoOut
+    PhotoOut,
+    UserLocationInput,
+    UserAccountInput,
 )
-from modules.users.exceptions import UserNotFoundException
+from modules.users.exceptions import (
+    UserNotFoundException,
+    InvalidLocationException,
+)
 from modules.tags.schemas import TagInput, TagOut
 from modules.tags.exceptions import TagContentProfanity
 from modules.tags.service import profanity
@@ -46,6 +51,36 @@ class UsersService:
             payload
             ) -> UserProfile:
         user_profile = await self.repository.patch_user_profile(current_user_id, payload)
+        if not user_profile:
+            raise UserNotFoundException()
+        return user_profile
+
+    async def update_location(
+            self,
+            current_user_id: int,
+            payload: UserLocationInput,
+    ) -> UserProfile:
+        if not payload.location_consent:
+            raise InvalidLocationException()
+        user_profile = await self.repository.update_location(current_user_id, payload)
+        if not user_profile:
+            raise UserNotFoundException()
+        return user_profile
+
+    async def update_account(
+            self,
+            current_user_id: int,
+            payload: UserAccountInput,
+    ) -> UserProfile:
+        current = await self.repository.get_user_by_id(current_user_id)
+        if not current:
+            raise UserNotFoundException()
+        email_changed = str(current.email).lower() != str(payload.email).lower()
+        user_profile = await self.repository.update_account(
+            current_user_id,
+            payload,
+            reverify_email=email_changed,
+        )
         if not user_profile:
             raise UserNotFoundException()
         return user_profile
