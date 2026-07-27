@@ -42,10 +42,16 @@ class FakeRepository:
             }
         )
 
-    async def update_account(self, current_user_id: int, payload: UserAccountInput):
+    async def update_account(
+        self,
+        current_user_id: int,
+        payload: UserAccountInput,
+        *,
+        reverify_email: bool = False,
+    ):
         if self.raise_on_account is not None:
             raise self.raise_on_account
-        self.updated_account = (current_user_id, payload)
+        self.updated_account = (current_user_id, payload, reverify_email)
         if not self.user:
             return None
         return self.user.model_copy(
@@ -53,6 +59,7 @@ class FakeRepository:
                 "first_name": payload.first_name,
                 "last_name": payload.last_name,
                 "email": payload.email,
+                "is_verified": False if reverify_email else self.user.is_verified,
             }
         )
 
@@ -158,19 +165,35 @@ async def test_update_location_succeeds_when_consent_true():
 
 
 @pytest.mark.asyncio
-async def test_update_account_succeeds():
-    user = _complete_user()
+async def test_update_account_should_keep_verified_when_email_unchanged():
+    user = _complete_user(email="aaa@gmail.com", is_verified=True)
     repo = FakeRepository(user)
     service = UsersService(repo)
     payload = UserAccountInput(
         first_name="New",
         last_name="Name",
-        email="new@example.com",
+        email="aaa@gmail.com",
     )
     res = await service.update_account(1, payload)
     assert res.first_name == "New"
-    assert res.last_name == "Name"
+    assert res.is_verified is True
+    assert repo.updated_account == (1, payload, False)
+
+
+@pytest.mark.asyncio
+async def test_update_account_should_require_reverification_when_email_changes():
+    user = _complete_user(email="aaa@gmail.com", is_verified=True)
+    repo = FakeRepository(user)
+    service = UsersService(repo)
+    payload = UserAccountInput(
+        first_name="Ann",
+        last_name="MOMO",
+        email="new@example.com",
+    )
+    res = await service.update_account(1, payload)
     assert res.email == "new@example.com"
+    assert res.is_verified is False
+    assert repo.updated_account == (1, payload, True)
 
 
 @pytest.mark.asyncio
@@ -186,5 +209,20 @@ async def test_update_account_propagates_email_taken():
                 first_name="Ann",
                 last_name="MOMO",
                 email="taken@example.com",
+            ),
+        )
+
+
+@pytest.mark.asyncio
+async def test_update_account_should_raise_when_user_missing():
+    repo = FakeRepository(None)
+    service = UsersService(repo)
+    with pytest.raises(UserNotFoundException):
+        await service.update_account(
+            1,
+            UserAccountInput(
+                first_name="Ann",
+                last_name="MOMO",
+                email="a@b.com",
             ),
         )

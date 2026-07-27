@@ -50,6 +50,7 @@ Input (JSON):
 Rules:
 
 - Client always sends coordinates (GPS or FE city/map picker approx).
+- `latitude` must be in `[-90, 90]`; `longitude` in `[-180, 180]` (422 on violation).
 - Server does not reverse-geocode.
 - `location_consent=true` expected when storing location for matching use.
 - Response: same shape as `GET /users/me`.
@@ -68,7 +69,15 @@ Input (JSON):
 - `last_name` — required string
 - `email` — required email
 
-Response: same shape as `GET /users/me`.
+Rules:
+
+- If `email` differs from the current address (case-insensitive), the server updates
+  the email, sets `is_verified=false`, issues a new `verification_token`, and
+  enqueues a verification email to the **new** address (same outbox channel as
+  signup verify). The user must verify again before the account is trusted as verified.
+- If only names change (same email), verification state is unchanged.
+
+Response: same shape as `GET /users/me` (includes updated `is_verified`).
 
 Errors:
 

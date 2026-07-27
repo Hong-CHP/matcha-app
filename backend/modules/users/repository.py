@@ -16,6 +16,8 @@ from modules.users.exceptions import (
     MaxPhotosReachedException,
     EmailAlreadyTakenException,
 )
+from modules.notifications.outbox_repository import OutboxRepository
+from core.config import settings
 import imghdr
 import uuid
 from pathlib import Path
@@ -109,26 +111,62 @@ class UsersRepository:
             self,
             current_user_id: int,
             payload: UserAccountInput,
+            *,
+            reverify_email: bool = False,
     ) -> Optional[UserProfile]:
-        query = """
+        if not reverify_email:
+            query = f"""
+                    UPDATE users
+                    SET first_name = $2,
+                        last_name = $3,
+                        email = $4
+                    WHERE id = $1
+                    RETURNING {USER_COLUMNS}
+                    """
+            try:
+                return await self._fetch_one(
+                    UserProfile,
+                    query,
+                    current_user_id,
+                    payload.first_name,
+                    payload.last_name,
+                    payload.email,
+                )
+            except asyncpg.UniqueViolationError:
+                raise EmailAlreadyTakenException(payload.email) from None
+
+        email_token = str(uuid.uuid4())
+        query = f"""
                 UPDATE users
                 SET first_name = $2,
                     last_name = $3,
-                    email = $4
+                    email = $4,
+                    is_verified = FALSE,
+                    verification_token = $5
                 WHERE id = $1
-                RETURNING id, email, username, first_name, last_name, is_verified, created_at,
-                gender, sexual_preference, age, bio,
-                fame_rating, latitude, longitude, location_label, location_consent, last_connection
+                RETURNING {USER_COLUMNS}
                 """
         try:
-            return await self._fetch_one(
-                UserProfile,
-                query,
-                current_user_id,
-                payload.first_name,
-                payload.last_name,
-                payload.email,
-            )
+            async with self.connection.transaction():
+                profile = await self._fetch_one(
+                    UserProfile,
+                    query,
+                    current_user_id,
+                    payload.first_name,
+                    payload.last_name,
+                    payload.email,
+                    email_token,
+                )
+                if not profile:
+                    return None
+                outbox = OutboxRepository(self.connection)
+                await outbox.enqueue_verification_email(
+                    recipient_email=str(payload.email),
+                    user_id=current_user_id,
+                    verification_token=email_token,
+                    max_attempts=settings.OUTBOX_MAX_ATTEMPTS,
+                )
+                return profile
         except asyncpg.UniqueViolationError:
             raise EmailAlreadyTakenException(payload.email) from None
     

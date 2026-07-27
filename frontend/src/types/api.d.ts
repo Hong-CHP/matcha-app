@@ -367,6 +367,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/social/blocks/{target_user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Block */
+        post: operations["create_block_social_blocks__target_user_id__post"];
+        /** Delete Block */
+        delete: operations["delete_block_social_blocks__target_user_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/social/blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Blocks */
+        get: operations["list_blocks_social_blocks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/social/reports/{target_user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Report */
+        post: operations["create_report_social_reports__target_user_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discovery/suggest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Suggest Profiles */
+        get: operations["suggest_profiles_discovery_suggest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discovery/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search Profiles */
+        get: operations["search_profiles_discovery_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -388,6 +474,27 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** BlockStateResponse */
+        BlockStateResponse: {
+            /** Blocked */
+            blocked: boolean;
+        };
+        /** BlockedUserOut */
+        BlockedUserOut: {
+            /** Id */
+            id: number;
+            /** Username */
+            username: string;
+            /** First Name */
+            first_name: string;
+            /** Last Name */
+            last_name: string;
+            /**
+             * Blocked At
+             * Format: date-time
+             */
+            blocked_at: string;
+        };
         /** Body_patch_photo_by_new_users_me_photos__photo_id__put */
         Body_patch_photo_by_new_users_me_photos__photo_id__put: {
             /** File */
@@ -419,6 +526,35 @@ export interface components {
             profile_completed: boolean;
             /** Has Password */
             has_password: boolean;
+        };
+        /** DiscoveryProfileCard */
+        DiscoveryProfileCard: {
+            /** Id */
+            id: number;
+            /** Username */
+            username: string;
+            /** First Name */
+            first_name: string;
+            /** Last Name */
+            last_name: string;
+            /** Age */
+            age: number;
+            /**
+             * Gender
+             * @enum {string}
+             */
+            gender: "male" | "female" | "other";
+            /** Fame Rating */
+            fame_rating: number;
+            /** Distance Km */
+            distance_km?: number | null;
+            /**
+             * Common Tags Count
+             * @default 0
+             */
+            common_tags_count: number;
+            /** Location Label */
+            location_label?: string | null;
         };
         /** ForgotPasswordInput */
         ForgotPasswordInput: {
@@ -498,6 +634,28 @@ export interface components {
             liked_you: boolean;
             /** Connected */
             connected: boolean;
+            /**
+             * Blocked By Me
+             * @default false
+             */
+            blocked_by_me: boolean;
+            /**
+             * Blocked You
+             * @default false
+             */
+            blocked_you: boolean;
+            /** Last Connection */
+            last_connection?: string | null;
+            /**
+             * Is Online
+             * @default false
+             */
+            is_online: boolean;
+        };
+        /** ReportInput */
+        ReportInput: {
+            /** Reason */
+            reason?: string | null;
         };
         /** ResendVerificationInput */
         ResendVerificationInput: {
@@ -1583,6 +1741,221 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RelationshipResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_block_social_blocks__target_user_id__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                target_user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlockStateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_block_social_blocks__target_user_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                target_user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlockStateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_blocks_social_blocks_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlockedUserOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_report_social_reports__target_user_id__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                target_user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suggest_profiles_discovery_suggest_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                sort?: string | null;
+                order?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscoveryProfileCard"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_profiles_discovery_search_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                sort?: string | null;
+                order?: string | null;
+                age_min?: number | null;
+                age_max?: number | null;
+                fame_min?: number | null;
+                fame_max?: number | null;
+                max_distance_km?: number | null;
+                tag_ids?: number[];
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscoveryProfileCard"][];
                 };
             };
             /** @description Validation Error */

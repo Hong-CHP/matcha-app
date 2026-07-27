@@ -72,7 +72,15 @@ class UsersService:
             current_user_id: int,
             payload: UserAccountInput,
     ) -> UserProfile:
-        user_profile = await self.repository.update_account(current_user_id, payload)
+        current = await self.repository.get_user_by_id(current_user_id)
+        if not current:
+            raise UserNotFoundException()
+        email_changed = str(current.email).lower() != str(payload.email).lower()
+        user_profile = await self.repository.update_account(
+            current_user_id,
+            payload,
+            reverify_email=email_changed,
+        )
         if not user_profile:
             raise UserNotFoundException()
         return user_profile

@@ -29,8 +29,8 @@ class UserProfileInput(BaseModel):
     bio: str = Field(..., min_length=1)
 
 class UserLocationInput(BaseModel):
-    latitude: float
-    longitude: float
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
     location_label: Optional[str] = None
     location_consent: bool
 

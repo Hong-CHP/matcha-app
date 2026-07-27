@@ -62,7 +62,13 @@ class FakeRepository:
         self.users[current_user_id] = updated
         return updated
 
-    async def update_account(self, current_user_id: int, payload: UserAccountInput):
+    async def update_account(
+        self,
+        current_user_id: int,
+        payload: UserAccountInput,
+        *,
+        reverify_email: bool = False,
+    ):
         if self.raise_on_account is not None:
             raise self.raise_on_account
         user = self.users.get(current_user_id)
@@ -73,6 +79,7 @@ class FakeRepository:
                 "first_name": payload.first_name,
                 "last_name": payload.last_name,
                 "email": payload.email,
+                "is_verified": False if reverify_email else user.is_verified,
             }
         )
         self.users[current_user_id] = updated
@@ -199,14 +206,31 @@ class TestPatchAccount:
             json={
                 "first_name": "New",
                 "last_name": "Name",
-                "email": "new@example.com",
+                "email": "aaa@gmail.com",
             },
         )
         assert response.status_code == 200
         body = response.json()
         assert body["first_name"] == "New"
         assert body["last_name"] == "Name"
+        assert body["email"] == "aaa@gmail.com"
+        assert body["is_verified"] is True
+
+    def test_account_email_change_marks_unverified(self, override_service):
+        token = make_token(user_id=1)
+        response = client.patch(
+            "/users/me/account",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "first_name": "Ann",
+                "last_name": "MOMO",
+                "email": "new@example.com",
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
         assert body["email"] == "new@example.com"
+        assert body["is_verified"] is False
 
     def test_account_update_email_taken(self, fake_user):
         fake_repo = FakeRepository({1: fake_user})
@@ -229,6 +253,19 @@ class TestPatchAccount:
             app.dependency_overrides.clear()
         assert response.status_code == 409
         assert response.json()["code"] == "EMAIL_TAKEN"
+
+    def test_location_rejects_out_of_range_coords(self, override_service):
+        token = make_token(user_id=1)
+        response = client.patch(
+            "/users/me/location",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "latitude": 999,
+                "longitude": 2.35,
+                "location_consent": True,
+            },
+        )
+        assert response.status_code == 422
 
 
 class TestAuthMeStaysThin:
