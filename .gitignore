@@ -105,6 +105,9 @@ $RECYCLE.BIN/
 *.tmp
 *.orig
 
+# Design-review screenshots: regenerated on demand, never reviewed in a diff.
+tools/preview/shots/
+
 #─────────────────────────────────────────────────────────────
 # Docs
 #─────────────────────────────────────────────────────────────
@@ -112,3 +115,4 @@ $RECYCLE.BIN/
 docs/
 .session/
 
+.agents/
