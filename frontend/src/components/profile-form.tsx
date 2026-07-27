@@ -7,14 +7,13 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 import { Label } from "./ui/label"
 import { Input } from "./ui/input"
 
-
 type ProfileFormProps = {
     register: UseFormRegister<ProfileValues>,
     errors: FieldErrors<ProfileValues>,
     isSubmitting: boolean,
     control: Control<ProfileValues>
     serverError: string | null,
-    onSubmit: React.SubmitEventHandler<HTMLFormElement>
+    onSubmit: React.SubmitEventHandler<HTMLFormElement>,
     onSuccess: () => void
 }
 

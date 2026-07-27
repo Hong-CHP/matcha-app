@@ -91,7 +91,7 @@ function PhotosForm({
                 )}
                 <Field>
                     <FieldLabel htmlFor="user_photos"></FieldLabel>
-                    <Input 
+                    <Input
                         ref={fileInputRef}
                         id="user_photos"
                         type="file"
@@ -124,9 +124,15 @@ function PhotosForm({
                     }
                     </div>
                 )}
+                {photoList?.length < 1 && (
+                    <FieldError>You should upload minimum one photo.</FieldError>
+                )}
+                {photoList?.length > 0 && !photoList.find(p=>p.is_profile_photo) && (
+                    <FieldError>You should choose one photo as your profile photo.</FieldError>
+                )}
                 {showFinish && onFinish && (
                     <Field>
-                        <Button onClick={()=>onFinish()}>Finish</Button>
+                        <Button onClick={()=>onFinish()} disabled={photoList.length < 1 || !photoList.find(p=>p.is_profile_photo)}>Finish</Button>
                     </Field>
                 )}
             </FieldGroup>

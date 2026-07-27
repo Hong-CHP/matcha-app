@@ -52,13 +52,15 @@ function TagsForm({
                         </div>
                 </Field>
                 <Field>
-                    {tagsList.length > 0 && (
-                        tagsList.map(tag=>(
-                            <Badge variant="outline" key={tag.id} onClick={()=>handleDeleteTag(tag.id)}>
-                                {tag.name} x
-                            </Badge>
-                        ))
-                    )}
+                    <div className="flex flex-row flex-wrap gap-3">
+                        {tagsList.length > 0 && (
+                            tagsList.map(tag=>(
+                                <Badge variant="outline" key={tag.id} onClick={()=>handleDeleteTag(tag.id)}>
+                                    {tag.name} x
+                                </Badge>
+                            ))
+                        )}
+                    </div>
                 </Field>
                 {tagsList.length < 1 && (
                     <FieldError>You must add at least one tag</FieldError>
