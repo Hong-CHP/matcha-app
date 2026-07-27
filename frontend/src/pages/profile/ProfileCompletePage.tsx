@@ -20,7 +20,6 @@ export function ProfileCompletePage() {
   const {
         register,
         errors,
-        isSubmitting,
         control,
         serverError: profileError,
         onSubmit,
@@ -62,7 +61,7 @@ export function ProfileCompletePage() {
   }
 
   return (
-    <Card>
+    <Card className="max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Welcome, {profile?.username}</CardTitle>
         <CardDescription>Please complete your profile!</CardDescription>
@@ -72,7 +71,6 @@ export function ProfileCompletePage() {
           <ProfileForm 
           register={register}
           errors={errors}
-          isSubmitting={isSubmitting}
           control={control}
           serverError={profileError}
           onSubmit={onSubmit}

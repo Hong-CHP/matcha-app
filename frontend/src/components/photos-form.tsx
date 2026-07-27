@@ -57,7 +57,7 @@ function PhotosForm({
 
     return (
         <>
-            <FieldGroup className="flex flex-col gap-4 max-w-md">
+            <FieldGroup className="flex flex-col gap-4 w-full">
                 <Field>
                     <FieldLabel htmlFor="user_photos">Please upload your photos:</FieldLabel>
                     <FieldDescription>Maximun 5 photos, and please choose one as your profile photo.</FieldDescription>

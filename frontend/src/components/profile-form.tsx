@@ -10,7 +10,6 @@ import { Input } from "./ui/input"
 type ProfileFormProps = {
     register: UseFormRegister<ProfileValues>,
     errors: FieldErrors<ProfileValues>,
-    isSubmitting: boolean,
     control: Control<ProfileValues>
     serverError: string | null,
     onSubmit: React.SubmitEventHandler<HTMLFormElement>,
@@ -20,7 +19,6 @@ type ProfileFormProps = {
 function ProfileForm({
     register,
     errors,
-    isSubmitting,
     control,
     serverError,
     onSubmit,
@@ -28,7 +26,7 @@ function ProfileForm({
 }: ProfileFormProps) {
     return (
         <>
-            <form onSubmit={onSubmit} className="flex flex-col gap-4 max-w-md">
+            <form onSubmit={onSubmit} className="flex flex-col gap-4 w-full">
                 <Controller 
                     name="gender"
                     control={control}
@@ -36,7 +34,7 @@ function ProfileForm({
                         <>
                             <RadioGroup
                                 value={field.value?? ""} onValueChange={field.onChange}>
-                                <div className="flex flex-row flex-wrap min-[600px]:flex-nowrap justify-bewteen items-center gap-6">
+                                <div className="flex flex-row flex-wrap min-[600px]:flex-nowrap justify-between items-center gap-4 w-full">
                                     <p>Please select your gender: </p>
                                     <div className="flex flex-row items-center gap-2">
                                         <RadioGroupItem value="male" id="male" />
@@ -63,7 +61,7 @@ function ProfileForm({
                         <>
                             <RadioGroup
                                 value={field.value?? ""} onValueChange={field.onChange}>
-                                    <div className="flex flex-row flex-wrap min-[600px]:flex-nowrap justify-bewteen items-center gap-6">
+                                    <div className="flex flex-row flex-wrap min-[600px]:flex-nowrap justify-between items-center gap-4 w-full">
                                         <p>Please select your sexual preference: </p>
                                         <div className="flex flex-row items-center gap-2">
                                             <RadioGroupItem value="man" id="man" />
@@ -85,13 +83,13 @@ function ProfileForm({
                 />
                 <FieldGroup>
                     <Field>
-                        <div className="flex flex-row gap-3 items-center">
+                        <div className="flex flex-row gap-3 items-center justify-between">
                             <FieldLabel htmlFor="age">Age</FieldLabel>
                             <Input
                                 id="age"
                                 type="number"
                                 aria-invalid={!!errors.age}
-                                className="w-20"
+                                className="w-[20%]"
                                 {...register('age', { valueAsNumber: true })}
                                 />
                             <FieldError errors={[errors.age]} />
@@ -107,7 +105,7 @@ function ProfileForm({
                     </Field>
                     {serverError && <FieldError>{serverError}</FieldError>}
                     <Field>
-                        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button>
+                        <Button type="submit">Next</Button>
                     </Field>
                 </FieldGroup>
             </form>

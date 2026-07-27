@@ -124,15 +124,15 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
         <Card>
             <CardHeader>
                 <div>
-                    <CardTitle>account</CardTitle>
+                    <div className="flex justify-between items-center">
+                        <CardTitle>Account</CardTitle>
+                        <Button variant="outline" onClick={()=>setAccountEditing(true)}>
+                            <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
+                        </Button> 
+                    </div>
                     <CardDescription>
                       These are your personal secret informations.
                     </CardDescription>
-                </div>
-                <div>
-                    <Button variant="outline" onClick={()=>setAccountEditing(true)}>
-                        <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
-                    </Button> 
                 </div>
                 {accountEditing && (
                     <div>
@@ -167,12 +167,14 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                             <FieldError errors={[errors.last_name]}/>  
                         </Field>
                         <Field>
-                            <FieldLabel htmlFor="current-email">Current mail</FieldLabel>
+                            <div className="flex justify-between items-center">
+                                <FieldLabel htmlFor="current-email">Current email</FieldLabel>
+                                <Button variant="outline" onClick={()=>setEmailEditing(true)}>
+                                    <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
+                                </Button> 
+                            </div>
                             <p>{profile.email}</p>
                             {emailChangeSent && (<p>{emailChangeSent}</p>)}
-                            <Button variant="outline" onClick={()=>setEmailEditing(true)}>
-                                <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
-                            </Button> 
                         </Field>
                         {emailEditing && (
                             <Field>
@@ -185,48 +187,47 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                                 <div>
                                     <Button onClick={emailForm.handleSubmit(onSubmitEmailChange)}>Send verification</Button>
                                     <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                                    
                                 </div>
                             </Field>
                         )}
                         <Field>
-                            <FieldLabel>Reset your password</FieldLabel>
-                            <Button variant="outline" onClick={()=>setPasswordEditing(true)}>
-                                <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
-                            </Button>
+                            <div className="flex justify-between items-center">
+                                <FieldLabel>Reset your password</FieldLabel>
+                                <Button variant="outline" onClick={()=>setPasswordEditing(true)}>
+                                    <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
+                                </Button>
+                            </div>
                         </Field>
                         {passwordEditing && (
                             <Field>
                                 <div>
-                                    <div>
-                                        <FieldLabel htmlFor="current-pwd">Current password</FieldLabel>
-                                        <Input id="current-pwd" type="password" disabled={!passwordEditing}
-                                            aria-invalid={!!passwordForm.formState.errors.current_password}
-                                            {...passwordForm.register("current_password")}
-                                        />
-                                        <FieldError errors={[passwordForm.formState.errors.current_password]}/>
-                                    </div>
-                                    <div>
-                                        <FieldLabel htmlFor="reset-pwd">New password</FieldLabel>
-                                        <Input id="reset-pwd" type="password" disabled={!passwordEditing}
-                                            aria-invalid={!!passwordForm.formState.errors.new_password}
-                                            {...passwordForm.register("new_password")}
-                                        />
-                                        <FieldError errors={[passwordForm.formState.errors.new_password]}/>
-                                    </div>
-                                    <div>
-                                        <FieldLabel htmlFor="reset-pwd">Confirm new password</FieldLabel>
-                                        <Input id="reset-pwd" type="password" disabled={!passwordEditing}
-                                            aria-invalid={!!passwordForm.formState.errors.confirm_password}
-                                            {...passwordForm.register("confirm_password")}
-                                        />
-                                        <FieldError errors={[passwordForm.formState.errors.confirm_password]}/>
-                                    </div>
-                                    <div>
-                                        <Button onClick={passwordForm.handleSubmit(onSubmitPasswordChange)}>Reset</Button>
-                                        <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                                        {passwordChangeCfm && (<p>{passwordChangeCfm}</p>)}
-                                    </div>
+                                    <FieldLabel htmlFor="current-pwd">Current password</FieldLabel>
+                                    <Input id="current-pwd" type="password" disabled={!passwordEditing}
+                                        aria-invalid={!!passwordForm.formState.errors.current_password}
+                                        {...passwordForm.register("current_password")}
+                                    />
+                                    <FieldError errors={[passwordForm.formState.errors.current_password]}/>
+                                </div>
+                                <div>
+                                    <FieldLabel htmlFor="reset-pwd">New password</FieldLabel>
+                                    <Input id="reset-pwd" type="password" disabled={!passwordEditing}
+                                        aria-invalid={!!passwordForm.formState.errors.new_password}
+                                        {...passwordForm.register("new_password")}
+                                    />
+                                    <FieldError errors={[passwordForm.formState.errors.new_password]}/>
+                                </div>
+                                <div>
+                                    <FieldLabel htmlFor="reset-pwd">Confirm new password</FieldLabel>
+                                    <Input id="reset-pwd" type="password" disabled={!passwordEditing}
+                                        aria-invalid={!!passwordForm.formState.errors.confirm_password}
+                                        {...passwordForm.register("confirm_password")}
+                                    />
+                                    <FieldError errors={[passwordForm.formState.errors.confirm_password]}/>
+                                </div>
+                                <div>
+                                    <Button onClick={passwordForm.handleSubmit(onSubmitPasswordChange)}>Reset</Button>
+                                    <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                                    {passwordChangeCfm && (<p>{passwordChangeCfm}</p>)}
                                 </div>
                             </Field>
                         )}

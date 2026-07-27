@@ -107,13 +107,13 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
         <Card>
           <CardHeader>
             <div>
-                <CardTitle>Profile</CardTitle>
+                <div className="flex justify-between items-center">
+                    <CardTitle>Profile</CardTitle>
+                    <Button variant="outline" onClick={()=>setEditing(true)}>
+                        <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
+                    </Button>
+                </div>
                 <CardDescription>These informations will be shown to public.</CardDescription>
-            </div>
-            <div>
-                <Button variant="outline" onClick={()=>setEditing(true)}>
-                    <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
-                </Button>
             </div>
             {editing && (
                 <div>
@@ -127,11 +127,14 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                 {serverError && (<FieldError>{serverError}</FieldError>)}
                 <FieldGroup>
                     <Field>
-                        <FieldLabel htmlFor="age">Age</FieldLabel>
-                        <Input id="age" type="number" disabled={!editing}
-                            aria-invalid={!!errors.age}
-                            {...register("age", {valueAsNumber: true})} />
-                        <FieldError errors={[errors.age]}/>
+                        <div className="flex gap-3 items-center justify-between">
+                            <FieldLabel htmlFor="age">Age</FieldLabel>
+                            <Input id="age" type="number" disabled={!editing}
+                                aria-invalid={!!errors.age}
+                                className="w-[20%]"
+                                {...register("age", {valueAsNumber: true})} />
+                            <FieldError errors={[errors.age]}/>
+                        </div>
                     </Field>
                     <Controller 
                         name="gender"
@@ -140,19 +143,21 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                             <Field>
                                 <RadioGroup
                                     value={ field.value } onValueChange={field.onChange} disabled={!editing}>
-                                    <p>Gender</p>
-                                    <div>
-                                        <RadioGroupItem value="male" id="male" />
-                                        <Label htmlFor="male">Male</Label>
-                                    </div>        
-                                    <div>
-                                        <RadioGroupItem value="female" id="female" />
-                                        <Label htmlFor="female">Female</Label>
-                                    </div>        
-                                    <div>
-                                        <RadioGroupItem value="other" id="other" />
-                                        <Label htmlFor="other">Other</Label>
-                                    </div>                    
+                                    <div className="flex flex-row flex-wrap min-[600px]:flex-nowrap justify-between w-full items-center gap-6">
+                                        <p>Gender</p>
+                                        <div className="flex flex-row items-center gap-2">
+                                            <RadioGroupItem value="male" id="male" />
+                                            <Label htmlFor="male">Male</Label>
+                                        </div>        
+                                        <div className="flex flex-row items-center gap-2">
+                                            <RadioGroupItem value="female" id="female" />
+                                            <Label htmlFor="female">Female</Label>
+                                        </div>        
+                                        <div className="flex flex-row items-center gap-2">
+                                            <RadioGroupItem value="other" id="other" />
+                                            <Label htmlFor="other">Other</Label>
+                                        </div>
+                                    </div>
                                 </RadioGroup>
                                 <FieldError errors={[fieldState.error]} />
                             </Field>
@@ -163,19 +168,21 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                         render={({field, fieldState})=>(
                         <Field>
                             <RadioGroup value={ field.value } onValueChange={field.onChange} disabled={!editing}>
-                                <p>Sexual_preference</p>
-                                    <div>
+                                <div className="flex flex-row flex-wrap min-[600px]:flex-nowrap justify-between w-full items-center gap-6">   
+                                    <p>Sexual_preference</p>
+                                    <div className="flex flex-row items-center gap-2">
                                         <RadioGroupItem value="man" id="man" />
                                         <Label htmlFor="man">Man</Label>
                                     </div>        
-                                    <div>
+                                    <div className="flex flex-row items-center gap-2">
                                         <RadioGroupItem value="woman" id="woman" />
                                         <Label htmlFor="woman">Woman</Label>
                                     </div>        
-                                    <div>
+                                    <div className="flex flex-row items-center gap-2">
                                         <RadioGroupItem value="bisexual" id="bisexual" />
                                         <Label htmlFor="bisexual">Bisexual</Label>
                                     </div>     
+                                </div>
                             </RadioGroup>
                             <FieldError errors={[fieldState.error]} />
                         </Field>
@@ -211,27 +218,31 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                         </FieldContent>
                     </Field>
                 </FieldGroup>
-                <TagsForm
-                    inputValue = {inputValue}
-                    tagsSearchList = {tagsSearchList}
-                    tagsList = {tagsList}
-                    serverError = {tagsError}
-                    handleMyTags = {handleMyTags}
-                    handleInput = {handleInput}
-                    handleAddTag = {handleAddTag}
-                    handleDeleteTag = {handleDeleteTag}
-                    showNextStep = {false}
-                />
-                <PhotosForm
-                    photoList = {photoList}
-                    serverError = {photosError}
-                    handleGetMyPhotos = {handleGetMyPhotos}
-                    handleAddPhoto = {handleAddPhoto}
-                    handleAsAvatar = {handleAsAvatar}
-                    handlePatchPhoto = {handlePatchPhoto}
-                    handleDeletePhoto = {handleDeletePhoto}
-                    showFinish = {false}
-                />
+                <div className="my-5">
+                    <TagsForm
+                        inputValue = {inputValue}
+                        tagsSearchList = {tagsSearchList}
+                        tagsList = {tagsList}
+                        serverError = {tagsError}
+                        handleMyTags = {handleMyTags}
+                        handleInput = {handleInput}
+                        handleAddTag = {handleAddTag}
+                        handleDeleteTag = {handleDeleteTag}
+                        showNextStep = {false}
+                    />
+                </div>
+                <div className="my-5">
+                    <PhotosForm
+                        photoList = {photoList}
+                        serverError = {photosError}
+                        handleGetMyPhotos = {handleGetMyPhotos}
+                        handleAddPhoto = {handleAddPhoto}
+                        handleAsAvatar = {handleAsAvatar}
+                        handlePatchPhoto = {handlePatchPhoto}
+                        handleDeletePhoto = {handleDeletePhoto}
+                        showFinish = {false}
+                        />
+                </div>
             </form>
           </CardContent>
         </Card>

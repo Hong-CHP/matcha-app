@@ -14,7 +14,7 @@ export function RootLayout() {
           </button>
         </nav>
       </header>
-      <main>
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <Outlet />
       </main>
     </div>

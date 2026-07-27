@@ -62,44 +62,49 @@ function MyProfilePage() {
     }
 
     return (
-        <>
+        <div className="max-w-2xl mx-auto">
             <div>
                 {serverError && <FieldError>{serverError}</FieldError>}
-                <Avatar>
+                <Avatar className="w-16 h-16 mx-auto">
                     <AvatarImage src={`${API_BASE_URL}${avatar!}`} alt={profile?.username} />
                     <AvatarFallback>CN</AvatarFallback>
                     <AvatarBadge className="bg-green-600 dark:bg-green-800" />
                 </Avatar>
             </div>
-            <div>
-                <h1>user_name</h1>
-                <div>
-                    <p>
+            <div className="flex flex-col">
+                <h1 className="m-auto">user_name</h1>
+                <div className="flex flex-row justify-center gap-3">
+                    <div className="flex flex-row items-center gap-1">
+                        <p>10</p>
                         <img src={likes} alt="likes" className="w-5 h-5 object-cover rounded cursor-pointer"/>
-                    </p>
-                    <p>
+                    </div>
+                    <div className="flex flex-row items-center gap-1">
+                        <p>10</p>
                         <img src={vues} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
-                    </p>
+                    </div>
+                </div>
+                <div className="flex flex-row justify-center gap-3">
+                    <div className="flex flex-row items-center gap-1">
+                        <p>10</p>
+                        <p>Popularity</p>
+                    </div>
                 </div>
             </div>
-            <div>
-                <p>Popularity</p>
-            </div>
             <ProfileTabs profile={profile!} onSaved={fetchProfile}/>
-        </>
+        </div>
     )
 }
 
 export function ProfileTabs({profile, onSaved} : {profile : UserProfile, onSaved: ()=>void}) {
 
     return (
-        <Tabs defaultValue="Profile" className="w-[400px]">
+        <Tabs defaultValue="Profile" className="w-ful my-5">
             <TabsList>
                 <TabsTrigger value="Profile">Profile</TabsTrigger>
                 <TabsTrigger value="account">account</TabsTrigger>
             </TabsList>
             <TabsContent value="Profile">
-                <ProfileTab profile={profile} onSaved={onSaved}/>
+                <ProfileTab profile={profile} onSaved={onSaved} />
             </TabsContent>
             <TabsContent value="account">
                 <AccountTab profile={profile} onSaved={onSaved}/>

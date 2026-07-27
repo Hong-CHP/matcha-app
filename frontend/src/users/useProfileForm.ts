@@ -18,7 +18,7 @@ function useProfileForm(onSuccess?: ()=>void) {
         handleSubmit,
         control,
         reset,
-        formState: {errors, isSubmitting},
+        formState: {errors},
     } = useForm<ProfileValues>({
         resolver: zodResolver(profileSchema),
     })
@@ -66,7 +66,6 @@ function useProfileForm(onSuccess?: ()=>void) {
     return {
         register,
         errors,
-        isSubmitting,
         control,
         serverError,
         onSubmit: handleSubmit(onSubmit),
