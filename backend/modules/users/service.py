@@ -58,7 +58,6 @@ class UsersService:
     async def update_location(
             self,
             current_user_id: int,
-<<<<<<< HEAD
             payload: UserLocationInput,
     ) -> UserProfile:
         if not payload.location_consent:
@@ -82,16 +81,10 @@ class UsersService:
             payload,
             reverify_email=email_changed,
         )
-=======
-            payload: EditProfileInput
-            ) -> UserProfile:
-        user_profile = await self.repository.patch_full_profile(current_user_id, payload)
->>>>>>> 3e75ab0 (normally, i fixed all issues mentionned in pull request review)
         if not user_profile:
             raise UserNotFoundException()
         return user_profile
     
-<<<<<<< HEAD
     # async def patch_full_profile(
     #         self,
     #         current_user_id: int,
@@ -113,17 +106,6 @@ class UsersService:
     #     if not user_profile:
     #         raise UserNotFoundException()
     #     return user_profile
-=======
-    async def patch_account(
-            self,
-            current_user_id: int,
-            payload: EditAccountInput,
-        ) -> UserProfile:
-        user_profile = await self.repository.patch_account(current_user_id, payload)
-        if not user_profile:
-            raise UserNotFoundException()
-        return user_profile
->>>>>>> 3e75ab0 (normally, i fixed all issues mentionned in pull request review)
     
     async def add_one_profile_tag(
             self,
@@ -181,47 +163,3 @@ class UsersService:
             current_user_id: int
         ) -> PhotoOut:
         return await self.repository.patch_photo_by_new(photo_id, file, current_user_id)
-<<<<<<< HEAD
-=======
-
-    async def request_email_change(
-            self,
-            current_user_id: int,
-            new_email: str
-        ) -> None:
-        email_token = str(uuid.uuid4())
-        user = await self.repository.request_email_change(current_user_id, new_email, email_token)
-        if not user:
-            raise UserNotFoundException()
-        
-    async def confirm_email_change(
-        self,
-        token: str,
-        ) -> UserProfile:
-        user = await self.repository.confirm_email_change(token)
-        if not user:
-            raise InvalidVerificationTokenException()
-        return user
-    
-    async def change_password(
-            self,
-            passwords: PasswordChangeInput,
-            current_user_id: int,
-    ) -> None:
-        from modules.auth.service import AuthService
-        from modules.auth.repository import AuthRepository
-        user = await AuthRepository(self.repository.connection).find_by_id(current_user_id)
-        if not user: 
-            raise InvalidCredentialsException()
-        if not user.password_hash:
-            raise NoPasswordSetException()
-        if not user.is_verified:
-            raise AccountNotVerifiedException()
-        if not bcrypt.checkpw(
-            passwords.current_password.encode("utf-8"), user.password_hash.encode("utf-8")
-        ):
-            raise InvalidCredentialsException()
-        hashed_password = AuthService(AuthRepository(self.repository.connection)).hash_password(passwords.new_password)
-        await self.repository.change_password(hashed_password, current_user_id)
-        
->>>>>>> 3e75ab0 (normally, i fixed all issues mentionned in pull request review)
