@@ -28,13 +28,13 @@ export function AppRoutes() {
           <Route element={<ProfileCompleteRoute />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/profile" element={<MyProfilePage />} />
-            <Route path="/confirm-email-change" element={<ConfirmEmailChangePage />} />
           </Route>
         </Route>
       </Route>
 
       <Route path="/auth/verify" element={<VerifyEmailPage />} />
       <Route path="/auth/callback/42" element={<FortyTwoCallbackPage />} />
+      <Route path="/users/email-change/confirm" element={<ConfirmEmailChangePage />} />
 
       <Route element={<PublicOnlyRoute />}>
         <Route element={<AuthLayout />}>

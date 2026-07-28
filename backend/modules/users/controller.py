@@ -8,8 +8,18 @@ from modules.users.schemas import (
     UserProfile,
     UserProfileInput,
     PhotoOut,
+<<<<<<< HEAD
     UserLocationInput,
     UserAccountInput,
+=======
+    EditProfileInput,
+    EditAccountInput,
+    PasswordChangeInput
+)
+from modules.auth.schemas import (
+    ResendVerificationInput,
+    ResendVerificationResponse
+>>>>>>> 3e75ab0 (normally, i fixed all issues mentionned in pull request review)
 )
 from modules.tags.schemas import TagOut, TagInput
 from typing import List
@@ -50,6 +60,7 @@ async def patch_me_location(
 ) -> UserProfile:
     return await service.update_location(current_user_id, payload)
 
+<<<<<<< HEAD
 @users_router.patch("/me/account", response_model=UserProfile)
 async def patch_me_account(
     payload: UserAccountInput,
@@ -57,6 +68,17 @@ async def patch_me_account(
     service: UsersService = Depends(get_users_service),
 ) -> UserProfile:
     return await service.update_account(current_user_id, payload)
+=======
+@users_router.patch(
+    "/me/account", response_model=UserProfile
+)
+async def patch_account(
+    payload: EditAccountInput,
+    current_user_id: int = Depends(get_current_user_id),
+    service: UsersService = Depends(get_users_service)
+    ) -> UserProfile:
+    return await service.patch_account(current_user_id, payload)
+>>>>>>> 3e75ab0 (normally, i fixed all issues mentionned in pull request review)
 
 @users_router.post(
     "/me/tags", response_model=TagOut

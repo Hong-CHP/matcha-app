@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     MAILTRAP_FROM_EMAIL: str = "noreply@matcha.com"
     MAILTRAP_FROM_NAME: str = "Matcha"
     VERIFICATION_URL_BASE: str = "http://localhost:5173/auth/verify"
+    EMAIL_CHANGE_CONFIRM_URL_BASE: str = "http://localhost:5173/users/email-change/confirm"
 
     PASSWORD_RESET_URL_BASE: str = "http://localhost:5173/auth/reset-password"
     

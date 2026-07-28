@@ -24,6 +24,10 @@ import uuid
 from pathlib import Path
 from modules.notifications.outbox_repository import OutboxRepository
 from core.config import settings
+from modules.auth.exceptions import (
+    DuplicateEmailException,
+    DuplicateUsernameException
+)
 
 UPLOAD_DIR = Path("uploads")
 MAX_SIZE = 5 * 1024 * 1024

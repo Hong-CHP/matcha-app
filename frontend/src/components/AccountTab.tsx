@@ -24,7 +24,7 @@ import { ApiError } from "@/api/client"
 import { resolveErrorMessage } from "@/i18n/errors"
 
 function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>void}) {
-    const { accessToken, logout } = useAuth()
+    const { accessToken, logout, user } = useAuth()
     const [accountEditing, setAccountEditing] = useState<boolean>(false)
     const [emailEditing, setEmailEditing] = useState<boolean>(false)
     const [passwordEditing, setPasswordEditing] = useState<boolean>(false)
@@ -190,37 +190,40 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                                 </div>
                             </Field>
                         )}
-                        <Field>
-                            <div className="flex justify-between items-center">
-                                <FieldLabel>Reset your password</FieldLabel>
-                                <Button variant="outline" onClick={()=>setPasswordEditing(true)}>
-                                    <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
-                                </Button>
-                            </div>
-                        </Field>
-                        {passwordEditing && (
+                        {
+                            user?.has_password && (
+                            <>
+                            <Field>
+                                <div className="flex justify-between items-center">
+                                    <FieldLabel>Reset your password</FieldLabel>
+                                    <Button variant="outline" onClick={()=>setPasswordEditing(true)}>
+                                        <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
+                                    </Button>
+                                </div>
+                            </Field>
+                            {passwordEditing && (
                             <Field>
                                 <div>
                                     <FieldLabel htmlFor="current-pwd">Current password</FieldLabel>
-                                    <Input id="current-pwd" type="password" disabled={!passwordEditing}
+                                        <Input id="current-pwd" type="password" disabled={!passwordEditing}
                                         aria-invalid={!!passwordForm.formState.errors.current_password}
                                         {...passwordForm.register("current_password")}
-                                    />
+                                        />
                                     <FieldError errors={[passwordForm.formState.errors.current_password]}/>
                                 </div>
                                 <div>
                                     <FieldLabel htmlFor="reset-pwd">New password</FieldLabel>
                                     <Input id="reset-pwd" type="password" disabled={!passwordEditing}
-                                        aria-invalid={!!passwordForm.formState.errors.new_password}
-                                        {...passwordForm.register("new_password")}
+                                    aria-invalid={!!passwordForm.formState.errors.new_password}
+                                    {...passwordForm.register("new_password")}
                                     />
                                     <FieldError errors={[passwordForm.formState.errors.new_password]}/>
                                 </div>
                                 <div>
                                     <FieldLabel htmlFor="reset-pwd">Confirm new password</FieldLabel>
                                     <Input id="reset-pwd" type="password" disabled={!passwordEditing}
-                                        aria-invalid={!!passwordForm.formState.errors.confirm_password}
-                                        {...passwordForm.register("confirm_password")}
+                                    aria-invalid={!!passwordForm.formState.errors.confirm_password}
+                                    {...passwordForm.register("confirm_password")}
                                     />
                                     <FieldError errors={[passwordForm.formState.errors.confirm_password]}/>
                                 </div>
@@ -230,8 +233,10 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                                     {passwordChangeCfm && (<p>{passwordChangeCfm}</p>)}
                                 </div>
                             </Field>
+                            )}
+                            </>
                         )}
-                    </FieldGroup>
+                        </FieldGroup>
                 </form>
               </CardContent>
             </Card>

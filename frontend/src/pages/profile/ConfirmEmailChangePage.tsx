@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSearchParams, Link, useNavigate } from "react-router-dom"
 import * as usersApi from "@/api/users"
 import { resolveErrorMessage } from "@/i18n/errors"
@@ -7,20 +7,24 @@ import { ApiError } from "@/api/client"
 
 function ConfirmEmailChangePage() {
     const [searchParams] = useSearchParams()
-    const token = searchParams.get("token")
+    const emailChangeToken = searchParams.get("token")
     const [serverError, setServerError] = useState<string | null>(null)
     const navigate = useNavigate()
+    const hasRequested = useRef(false)
 
     useEffect(()=>{
-        if (!token) {
+        if (!emailChangeToken) {
             setServerError("Missing verification token")
             return
         }
+        if (hasRequested.current)
+            return
+        hasRequested.current = true
         let cancelled = false
 
-        usersApi.confirmEmailChange(token).then(()=>{
+        usersApi.confirmEmailChange(emailChangeToken).then(()=>{
             if (cancelled) return
-            navigate("/profile")        
+            navigate("/profile")
         }).catch((err)=> {
             if (cancelled) return
             if (err instanceof ApiError) {
@@ -30,7 +34,7 @@ function ConfirmEmailChangePage() {
             }
         })
         return () => { cancelled = true }
-    }, [token, navigate])
+    }, [emailChangeToken, navigate])
 
     if (serverError) {
         return (

@@ -18,6 +18,8 @@ function useLocationInput(setValue: UseFormSetValue<EditProfileValues>){
             const res = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
             )
+            if (!res.ok)
+                throw new Error(`Geocode failed: ${res.status}`)
             const data = await res.json()
             const locationText = data.display_name??""
             setValue("latitude", latitude)
@@ -38,16 +40,23 @@ function useLocationInput(setValue: UseFormSetValue<EditProfileValues>){
             setValue("longitude", null)          
             return
         }
-        setValue("location_text", text.trim())
         setLocationError(null)
         try {
             const res = await fetch(
                 `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&format=json&limit=1`
             )
+            if (!res.ok)
+                throw new Error(`Geocode failed: ${res.status}`)
             const data = await res.json()
             if (data[0]) {
+                setValue("location_text", text.trim())
                 setValue("latitude", parseFloat(data[0].lat))
                 setValue("longitude", parseFloat(data[0].lon))
+            } else {
+                setValue("latitude", null)
+                setValue("longitude", null)
+                setLocationError("No match for this address. Please try an valid address.")
+                return
             }
         } catch (err) {
             setLocationError("Could not resolve this address.")

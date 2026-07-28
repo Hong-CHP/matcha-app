@@ -13,12 +13,14 @@ class MailtrapClient:
         from_name: str,
         verification_url: str,
         password_reset_url: str,
+        email_change_url: str
         ) -> None:
         self._client = mt.MailtrapClient(token=api_key)
         self._from_email = from_email
         self._from_name = from_name
         self._verification_url = verification_url
         self._password_reset_url = password_reset_url
+        self._email_change_url = email_change_url
 
     def _send_email_sync(
         self, to_email: str, subject: str, text: str, category: str,
@@ -86,6 +88,32 @@ class MailtrapClient:
         except Exception as e:
             raise MailtrapException(f"Failed to send verification email.") from e
 
+    def _send_email_change_email_sync(self, to_email: str, token: str) -> None:
+        confirm_url = f"{self._email_change_url}?token={token}"
+        self._send_email_sync(
+            to_email,
+            "Confirm your new Matcha email",
+            (
+                "You requested to change your Matcha account email.\n\n"
+                f"Confirm this change by opening this link:\n{confirm_url}\n\n"
+                "If you did not request this, ignore this email."
+            ),
+            "Email Change",
+        )
+
+    async def send_email_change_email(self, to_email: str, token: str) -> None:
+        try:
+            await asyncio.to_thread(
+                self._send_email_change_email_sync,
+                to_email,
+                token,
+            )
+        except MailtrapException:
+            raise
+        except Exception as e:
+            raise MailtrapException(f"Failed to send confirmation email change email.") from e
+
+
 def build_mailtrap_client() -> MailtrapClient:
     token = settings.MAILTRAP_API_KEY.get_secret_value()
     if not token:
@@ -96,4 +124,5 @@ def build_mailtrap_client() -> MailtrapClient:
         from_name=settings.MAILTRAP_FROM_NAME,
         verification_url=settings.VERIFICATION_URL_BASE,
         password_reset_url=settings.PASSWORD_RESET_URL_BASE,
+        email_change_url=settings.EMAIL_CHANGE_CONFIRM_URL_BASE,
     )

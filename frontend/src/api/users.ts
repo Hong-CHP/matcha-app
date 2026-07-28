@@ -30,8 +30,8 @@ export async function requestEmailChange(token: string, newEmail: ResendVerifica
     return apiPost<{message: string}>("/users/me/email-change", newEmail, {token})
 }
 
-export async function confirmEmailChange(token: string): Promise<UserProfile> {
-    return apiGet<UserProfile>(`/users/me/email-change/confirm/${token}`)
+export async function confirmEmailChange(emailChangeToken: string): Promise<UserProfile> {
+    return apiGet<UserProfile>(`/users/me/email-change/confirm?token=${encodeURIComponent(emailChangeToken)}`)
 }
 
 export async function changePassword(token: string, passwords: PasswordChangeValues): Promise<{message: string}> {

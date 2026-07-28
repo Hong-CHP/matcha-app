@@ -35,6 +35,12 @@ class AuthService:
         hashed_bytes = bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt())
         return hashed_bytes.decode("utf-8")
 
+    def hash_password(self, plain:str) -> str:
+        """
+        Public entry point for hashing a password. 
+        """
+        return self._hash_password(plain)
+
     def generate_jwt_token(self, user_id: int) -> str:
         now = datetime.datetime.now(datetime.UTC)
         payload = {
