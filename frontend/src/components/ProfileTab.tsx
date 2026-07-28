@@ -85,8 +85,8 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
     const onSubmit = async (data: EditProfileValues)=> {
         setServerError(null)
         try {
-            setEditing(false)
             await usersApi.editUserProfile(accessToken!, data)
+            setEditing(false)
             onSaved()
         } catch (err) {
             if (err instanceof ApiError) {

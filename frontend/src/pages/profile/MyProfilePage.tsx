@@ -35,8 +35,8 @@ function MyProfilePage() {
         const loadAvatar = async () => {
             try {
                 const photos = await usersApi.getMyPhotos(accessToken!)
-                const avatar_src = photos.filter(p=>p.is_profile_photo)[0].url
-                setAvatar(avatar_src)
+                const avatar_src = photos.filter(p=>p.is_profile_photo)
+                setAvatar(avatar_src?.[0].url?? null)
             } catch (err) {
                 if (err instanceof ApiError) {
                     setServerError(resolveErrorMessage(err.code, err.message))
@@ -66,13 +66,13 @@ function MyProfilePage() {
             <div>
                 {serverError && <FieldError>{serverError}</FieldError>}
                 <Avatar className="w-16 h-16 mx-auto">
-                    <AvatarImage src={`${API_BASE_URL}${avatar!}`} alt={profile?.username} />
+                    <AvatarImage src={avatar ? `${API_BASE_URL}${avatar!}` : undefined} alt={profile?.username} />
                     <AvatarFallback>CN</AvatarFallback>
                     <AvatarBadge className="bg-green-600 dark:bg-green-800" />
                 </Avatar>
             </div>
             <div className="flex flex-col">
-                <h1 className="m-auto">user_name</h1>
+                <h1 className="m-auto">{profile.username}</h1>
                 <div className="flex flex-row justify-center gap-3">
                     <div className="flex flex-row items-center gap-1">
                         <p>10</p>
