@@ -15,10 +15,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import edit from "@/assets/edit.png"
-import {
-    resendVerificationSchema,
-    type ResendVerificationValues,
-} from "@/schemas/auth"
 import * as usersApi from "../api/users"
 import { ApiError } from "@/api/client"
 import { resolveErrorMessage } from "@/i18n/errors"
@@ -26,10 +22,8 @@ import { resolveErrorMessage } from "@/i18n/errors"
 function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>void}) {
     const { accessToken, logout, user } = useAuth()
     const [accountEditing, setAccountEditing] = useState<boolean>(false)
-    const [emailEditing, setEmailEditing] = useState<boolean>(false)
     const [passwordEditing, setPasswordEditing] = useState<boolean>(false)
     const [serverError, setServerError] = useState<string | null>(null)
-    const [emailChangeSent, setEmailChangeSent] = useState<string | null>(null)
     const [passwordChangeCfm, setPasswordChangeCfm] = useState<string | null>(null)
 
     const {
@@ -42,14 +36,8 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
         defaultValues: {
             username: profile.username,
             first_name: profile.first_name,
-            last_name: profile.last_name
-        }
-    })
-
-    const emailForm = useForm<ResendVerificationValues>({
-        resolver: zodResolver(resendVerificationSchema),
-        defaultValues: {
-            email: ""
+            last_name: profile.last_name,
+            email: profile.email
         }
     })
 
@@ -68,21 +56,6 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
             await usersApi.editUserAccount(accessToken!, data)
             setAccountEditing(false)
             onSaved()
-        } catch (err) {
-            if (err instanceof ApiError) {
-                setServerError(resolveErrorMessage(err.code, err.message))
-                if (err.code === "USER_NOT_FOUND")
-                    logout()
-            }
-        }
-    }
-    
-    const onSubmitEmailChange = async (newEmail: ResendVerificationValues) => {
-        setServerError(null)
-        try {
-            const response = await usersApi.requestEmailChange(accessToken!, newEmail)
-            setEmailEditing(false)
-            setEmailChangeSent(response.message)
         } catch (err) {
             if (err instanceof ApiError) {
                 setServerError(resolveErrorMessage(err.code, err.message))
@@ -114,8 +87,6 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
         reset()
         if (accountEditing)
             setAccountEditing(false)
-        if (emailEditing)
-            setEmailEditing(false)
         if (passwordEditing)
             setPasswordEditing(false)
     }
@@ -167,31 +138,14 @@ function AccountTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                             <FieldError errors={[errors.last_name]}/>  
                         </Field>
                         <Field>
-                            <div className="flex justify-between items-center">
-                                <FieldLabel htmlFor="current-email">Current email</FieldLabel>
-                                <Button variant="outline" onClick={()=>setEmailEditing(true)}>
-                                    <img src={edit} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
-                                </Button> 
-                            </div>
-                            <p>{profile.email}</p>
-                            {emailChangeSent && (<p>{emailChangeSent}</p>)}
+                            <FieldLabel htmlFor="new-email">Email address</FieldLabel>
+                            <Input id="user-email" type="email" disabled={!accountEditing}
+                                aria-invalid={!!errors.email}
+                                {...register("email")}
+                                />
+                            <FieldError errors={[errors.email]}/>
                         </Field>
-                        {emailEditing && (
-                            <Field>
-                                <FieldLabel htmlFor="new-email">Change email address</FieldLabel>
-                                <Input id="user-email" type="email" disabled={!emailEditing}
-                                    aria-invalid={!!emailForm.formState.errors.email}
-                                    {...emailForm.register("email")}
-                                    />
-                                <FieldError errors={[emailForm.formState.errors.email]}/>
-                                <div>
-                                    <Button onClick={emailForm.handleSubmit(onSubmitEmailChange)}>Send verification</Button>
-                                    <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                                </div>
-                            </Field>
-                        )}
-                        {
-                            user?.has_password && (
+                        {user?.has_password && (
                             <>
                             <Field>
                                 <div className="flex justify-between items-center">

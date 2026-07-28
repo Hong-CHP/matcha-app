@@ -5,7 +5,8 @@ from modules.users.schemas import (
     PhotoOut,
     UserLocationInput,
     UserAccountInput,
-    UserProfileInput
+    UserProfileInput,
+    EditProfileInput
 )
 from typing import Any, List, Optional, Type, TypeVar
 from pydantic import BaseModel
@@ -24,9 +25,9 @@ import uuid
 from pathlib import Path
 from modules.notifications.outbox_repository import OutboxRepository
 from core.config import settings
-from modules.auth.exceptions import (
-    DuplicateEmailException,
-    DuplicateUsernameException
+from modules.users.exceptions import (
+    EmailAlreadyTakenException,
+    UsernameAlreadyTakenException
 )
 
 UPLOAD_DIR = Path("uploads")
@@ -88,6 +89,27 @@ class UsersRepository:
             payload.bio,
             )
 
+    async def edit_profile(
+            self,
+            current_user_id: int,
+            payload: EditProfileInput,
+    ) -> Optional[UserProfile]:
+        profile_payload = UserProfileInput(
+            gender=payload.gender,
+            sexual_preference=payload.sexual_preference,
+            age=payload.age,
+            bio=payload.bio,
+        )
+        location_payload = UserLocationInput(
+            latitude=payload.latitude,
+            longitude=payload.longitude,
+            location_label=payload.location_label,
+            location_consent=payload.location_consent,
+        )
+        async with self.connection.transaction():
+            await self.patch_user_profile(current_user_id, profile_payload)
+            return await self.update_location(current_user_id, location_payload)
+
     async def update_location(
             self,
             current_user_id: int,
@@ -124,9 +146,10 @@ class UsersRepository:
         if not reverify_email:
             query = f"""
                     UPDATE users
-                    SET first_name = $2,
-                        last_name = $3,
-                        email = $4
+                    SET username = $2,
+                        first_name = $3,
+                        last_name = $4,
+                        email = $5
                     WHERE id = $1
                     RETURNING {USER_COLUMNS}
                     """
@@ -135,21 +158,26 @@ class UsersRepository:
                     UserProfile,
                     query,
                     current_user_id,
+                    payload.username,
                     payload.first_name,
                     payload.last_name,
                     payload.email,
                 )
-            except asyncpg.UniqueViolationError:
-                raise EmailAlreadyTakenException(payload.email) from None
+            except asyncpg.UniqueViolationError as e:
+                if "username" in str(e.contraint_name) or "username" in str(e.details):
+                    raise UsernameAlreadyTakenException(payload.username) from None
+                elif "email" in str(e.contraint_name) or "email" in str(e.details):
+                    raise EmailAlreadyTakenException(payload.email) from None
 
         email_token = str(uuid.uuid4())
         query = f"""
                 UPDATE users
-                SET first_name = $2,
-                    last_name = $3,
-                    email = $4,
+                SET username = $2,
+                    first_name = $3,
+                    last_name = $4,
+                    email = $5,
                     is_verified = FALSE,
-                    verification_token = $5
+                    verification_token = $6
                 WHERE id = $1
                 RETURNING {USER_COLUMNS}
                 """
@@ -159,6 +187,7 @@ class UsersRepository:
                     UserProfile,
                     query,
                     current_user_id,
+                    payload.username,
                     payload.first_name,
                     payload.last_name,
                     payload.email,
@@ -177,47 +206,6 @@ class UsersRepository:
         except asyncpg.UniqueViolationError:
             raise EmailAlreadyTakenException(payload.email) from None
     
-    # async def patch_user_location(
-    #         self,
-    #         current_user_id: int,
-    #         payload: EditProfileInput
-    # ) -> Optional[UserProfile]:
-    #     query = f"""
-    #             UPDATE users
-    #             SET latitude = $2, longitude = $3, location_text = $4
-    #             WHERE id = $1
-    #             RETURNING {USER_COLUMNS}
-    #             """
-    #     return await self._fetch_one(
-    #         UserProfile,
-    #         query,
-    #         current_user_id,
-    #         payload.latitude,
-    #         payload.longitude,
-    #         payload.location_text
-    #     )
-    
-    # async def patch_accout(
-    #         self,
-    #         payload: EditAccoutInput,
-    #         current_user_id: int
-    #     ) -> Optional[UserProfile]:
-    #     query = f"""
-    #             UPDATE users
-    #             SET username = $2, first_name = $3, last_name = $4
-    #             WHERE id = $1
-    #             RETURNING {USER_COLUMNS}
-    #             """
-    #     return await self._fetch_one(
-    #         UserProfile,
-    #         query,
-    #         current_user_id,
-    #         payload.username,
-    #         payload.first_name,
-    #         payload.last_name
-    #     )
-        
-
     async def add_one_tag(
             self,
             current_user_id: int,
@@ -426,4 +414,15 @@ class UsersRepository:
         return await self.connection.fetchval(
             "SELECT last_connection FROM users WHERE id = $1",
             user_id,
+        )
+
+    async def change_password(
+        self,
+        hashed_password: str,
+        current_user_id: int,
+    ) -> None:
+        await self.connection.execute(
+            "UPDATE users SET password_hash = $2 WHERE id = $1",
+            current_user_id,
+            hashed_password,
         )

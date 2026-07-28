@@ -36,6 +36,7 @@ class UserLocationInput(BaseModel):
     location_consent: bool
 
 class UserAccountInput(BaseModel):
+    username: str = Field(..., min_length=1)
     first_name: str = Field(..., min_length=1)
     last_name: str = Field(..., min_length=1)
     email: EmailStr
@@ -46,22 +47,18 @@ class PhotoOut(BaseModel):
     is_profile_photo: bool
 
 class EditProfileInput(UserProfileInput):
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    location_text: Optional[str] = None    
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+    location_label: Optional[str] = None
+    location_consent: bool
 
     @model_validator(mode="after")
     def check_location_complete(self) -> "EditProfileInput":
         has_coords = self.latitude is not None and self.longitude is not None
-        has_text = bool(self.location_text is not None and self.location_text.strip())
+        has_text = bool(self.location_label is not None and self.location_label.strip())
         if not (has_coords and has_text):
-            raise ValueError("latitude, longitude and location_text must all be provided together")
+            raise ValueError("latitude, longitude and location_label must all be provided together")
         return self
-
-class EditAccountInput(BaseModel):
-    username: str 
-    first_name: str 
-    last_name: str
 
 class PasswordChangeInput(BaseModel):
     current_password: str

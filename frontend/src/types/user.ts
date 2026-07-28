@@ -13,7 +13,9 @@ export type UserProfile = {
     is_profile_completed: boolean
     latitude: number | null
     longitude: number | null
-    location_text: string | null
+    location_label: string | null
+    location_consent: boolean
+    last_connection: string
 }
 
 export type Tag = {

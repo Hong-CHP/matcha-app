@@ -49,7 +49,7 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
             bio: profile.bio!,
             latitude: profile.latitude,
             longitude: profile.longitude,
-            location_text: profile.location_text ?? ""
+            location_label: profile.location_label ?? ""
         }
     })
 
@@ -66,7 +66,6 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
         tagsSearchList,
         tagsList,
         serverError: tagsError,
-        handleMyTags,
         handleInput,
         handleAddTag,
         handleDeleteTag, 
@@ -75,7 +74,6 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
     const {
         photoList,
         serverError: photosError,
-        handleGetMyPhotos,
         handleAddPhoto,
         handleAsAvatar,
         handlePatchPhoto,
@@ -208,13 +206,13 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                                 disabled={!editing}/>
                             {isLocating && (<p>Getting your location...</p>)}
                             {!sharePosition && (
-                                <Input id="location_text" type="text" disabled={!editing}
-                                {...register("location_text", {
-                                    onChange: (e)=>handleManuallyLocationInput(e.target.value)
+                                <Input id="location_label" type="text" disabled={!editing}
+                                {...register("location_label", {
+                                    onBlur: (e)=>handleManuallyLocationInput(e.target.value)
                                 })} />
                             )}
                             {locationError && (<FieldError>{locationError}</FieldError>)}
-                            <FieldError errors={[errors.location_text]}/>
+                            <FieldError errors={[errors.location_label]}/>
                         </FieldContent>
                     </Field>
                 </FieldGroup>
@@ -224,7 +222,6 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                         tagsSearchList = {tagsSearchList}
                         tagsList = {tagsList}
                         serverError = {tagsError}
-                        handleMyTags = {handleMyTags}
                         handleInput = {handleInput}
                         handleAddTag = {handleAddTag}
                         handleDeleteTag = {handleDeleteTag}
@@ -235,7 +232,6 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
                     <PhotosForm
                         photoList = {photoList}
                         serverError = {photosError}
-                        handleGetMyPhotos = {handleGetMyPhotos}
                         handleAddPhoto = {handleAddPhoto}
                         handleAsAvatar = {handleAsAvatar}
                         handlePatchPhoto = {handlePatchPhoto}

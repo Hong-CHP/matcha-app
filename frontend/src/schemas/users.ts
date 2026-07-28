@@ -11,15 +11,16 @@ export const profileSchema = z.object({
 export const editProfileSchema = profileSchema.extend({
     latitude: z.number().nullable(),
     longitude: z.number().nullable(),
-    location_text: z.string().nullable()
+    location_label: z.string().nullable(),
+    location_consent: z.boolean()
 }).refine(
     (data) => 
         data.latitude !== null && 
         data.longitude !== null &&
-        !!data.location_text &&
-        data.location_text.trim().length > 0,
+        !!data.location_label &&
+        data.location_label.trim().length > 0,
     {
-        path: ["location_text"],
+        path: ["location_label"],
         message: "Please enter your location manually or enable location sharing."
     }
 )
@@ -28,6 +29,7 @@ export const accountSchema = z.object({
   username: z.string().min(1, 'Username is required'),
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
+  email: z.email('Invalid email')
 })
 
 export const passwordchangeSchema = z.object({

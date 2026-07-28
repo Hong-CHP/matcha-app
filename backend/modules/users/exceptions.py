@@ -40,3 +40,9 @@ class EmailAlreadyTakenException(UsersException):
     field = "email"
     def __init__(self, email: str):
         super().__init__(f"The email '{email}' is already registered.")
+
+class UsernameAlreadyTakenException(UsersException):
+    code = "USERNAME_TAKEN"
+    field = "username"
+    def __init__(self, username: str):
+        super().__init__(f"The username '{username}' is already registered.")
