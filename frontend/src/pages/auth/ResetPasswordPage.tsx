@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../../api/client'
 import * as authApi from '../../api/auth'
 import { useAuth } from '../../auth/useAuth'
 import { resetPasswordSchema, type ResetPasswordValues } from '../../schemas/auth'
 import { resolveErrorMessage } from '../../i18n/errors'
+import {
+  MissingResetToken,
+  ResetPasswordForm,
+} from '../../components/reset-password-form'
 
 export function ResetPasswordPage() {
   const navigate = useNavigate()
@@ -38,29 +42,16 @@ export function ResetPasswordPage() {
   }
 
   if (!token) {
-    return (
-      <div>
-        <h1>Reset password</h1>
-        <p>Missing reset token</p>
-        <Link to="/auth/forgot-password">Request a new link</Link>
-      </div>
-    )
+    return <MissingResetToken />
   }
 
   return (
-    <div>
-      <h1>Reset password</h1>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label htmlFor="password">New password</label>
-          <input id="password" type="password" {...register('password')} />
-          {errors.password && <p>{errors.password.message}</p>}
-        </div>
-        <button type="submit" disabled={isSubmitting}>
-          Update password
-        </button>
-      </form>
-      {serverError && <p>{serverError}</p>}
-    </div>
+    <ResetPasswordForm
+      register={register}
+      errors={errors}
+      isSubmitting={isSubmitting}
+      serverError={serverError}
+      onSubmit={handleSubmit(onSubmit)}
+    />
   )
 }

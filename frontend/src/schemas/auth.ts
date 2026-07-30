@@ -1,5 +1,12 @@
 import { z } from 'zod'
 
+// Checked for presence before format, so an untouched field reports "required"
+// like every other field rather than "Invalid email".
+const emailSchema = z
+  .string()
+  .min(1, 'Email is required')
+  .pipe(z.email('Invalid email'))
+
 export const passwordSchema = z
   .string()
   .min(8, 'Password must be at least 8 characters long')
@@ -8,7 +15,7 @@ export const passwordSchema = z
   .regex(/[0-9]/, 'Password must contain at least one number')
 
 export const registerSchema = z.object({
-  email: z.email('Invalid email'),
+  email: emailSchema,
   username: z.string().min(1, 'Username is required'),
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
@@ -21,7 +28,7 @@ export const loginSchema = z.object({
 })
 
 export const forgotPasswordSchema = z.object({
-  email: z.email('Invalid email'),
+  email: emailSchema,
 })
 
 export const resetPasswordSchema = z.object({
@@ -29,7 +36,7 @@ export const resetPasswordSchema = z.object({
 })
 
 export const resendVerificationSchema = z.object({
-  email: z.email('Invalid email'),
+  email: emailSchema,
 })
 
 export type RegisterValues = z.infer<typeof registerSchema>
