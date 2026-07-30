@@ -9,6 +9,7 @@ from modules.chat.schemas import MessageOut, SendMessageInput
 from modules.social.repository import SocialRepository
 from modules.notifications.repository import InAppNotificationsRepository
 from modules.notifications.service import NotificationsService
+from core.ws_hub import hub
 
 chat_router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -16,11 +17,12 @@ chat_router = APIRouter(prefix="/chat", tags=["chat"])
 def get_chat_service(
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> ChatService:
-    notifier = NotificationsService(InAppNotificationsRepository(db))
+    notifier = NotificationsService(InAppNotificationsRepository(db), hub=hub)
     return ChatService(
         ChatRepository(db),
         SocialRepository(db),
         notifier=notifier,
+        hub=hub,
     )
 
 

@@ -10,6 +10,7 @@ from modules.notifications.schemas import (
     UnreadCountOut,
     OkResponse,
 )
+from core.ws_hub import hub
 
 notifications_router = APIRouter(prefix="/notifications", tags=["notifications"])
 
@@ -17,7 +18,7 @@ notifications_router = APIRouter(prefix="/notifications", tags=["notifications"]
 def get_notifications_service(
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> NotificationsService:
-    return NotificationsService(InAppNotificationsRepository(db))
+    return NotificationsService(InAppNotificationsRepository(db), hub=hub)
 
 
 @notifications_router.get("", response_model=List[NotificationOut])
