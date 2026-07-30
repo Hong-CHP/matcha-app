@@ -86,7 +86,6 @@ postgres_data/
 # Cursor user-level caches (project rules under .cursor/ stay tracked)
 .cursor
 fr.subject.pdf
-fr.subject.md
 plan.md
 
 # ─────────────────────────────────────────────────────────────
@@ -112,7 +111,6 @@ tools/preview/shots/
 # Docs (local planning / contracts — not in remote)
 #─────────────────────────────────────────────────────────────
 
-docs/
 .session/
 
 #─────────────────────────────────────────────────────────────
