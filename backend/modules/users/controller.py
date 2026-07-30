@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, UploadFile, File, status
 import asyncpg
 from core.database import get_db_connection
 from core.presence import get_current_user_id_and_touch
@@ -10,6 +10,8 @@ from modules.users.schemas import (
     PhotoOut,
     UserLocationInput,
     UserAccountInput,
+    EditProfileInput,
+    PasswordChangeInput
 )
 from modules.tags.schemas import TagOut, TagInput
 from typing import List
@@ -134,3 +136,25 @@ async def patch_photo_by_new(
     service: UsersService = Depends(get_users_service)
 ) -> PhotoOut:
     return await service.patch_photo_by_new(photo_id, file, current_user_id)
+
+@users_router.patch(
+    "/me/profile", response_model=UserProfile
+)
+async def patch_me(
+    payload: EditProfileInput,
+    current_user_id: int = Depends(get_current_user_id_and_touch),
+    service: UsersService = Depends(get_users_service)
+    ) -> UserProfile:
+    return await service.edit_profile(current_user_id, payload)
+
+@users_router.patch(
+    "/me/password-change",
+    status_code=status.HTTP_200_OK,
+)
+async def change_password(
+    payload: PasswordChangeInput,
+    current_user_id: int = Depends(get_current_user_id_and_touch),
+    service: UsersService = Depends(get_users_service),
+) -> dict[str, str]:
+    await service.change_password(payload, current_user_id)
+    return {"message": "Password changed successfully."}

@@ -76,6 +76,7 @@ class FakeRepository:
             return None
         updated = user.model_copy(
             update={
+                "username": payload.username,
                 "first_name": payload.first_name,
                 "last_name": payload.last_name,
                 "email": payload.email,
@@ -204,6 +205,7 @@ class TestPatchAccount:
             "/users/me/account",
             headers={"Authorization": f"Bearer {token}"},
             json={
+                "username": "aaa",
                 "first_name": "New",
                 "last_name": "Name",
                 "email": "aaa@gmail.com",
@@ -222,6 +224,7 @@ class TestPatchAccount:
             "/users/me/account",
             headers={"Authorization": f"Bearer {token}"},
             json={
+                "username": "aaa",
                 "first_name": "Ann",
                 "last_name": "MOMO",
                 "email": "new@example.com",
@@ -244,6 +247,7 @@ class TestPatchAccount:
                 "/users/me/account",
                 headers={"Authorization": f"Bearer {token}"},
                 json={
+                    "username": "aaa",
                     "first_name": "Ann",
                     "last_name": "MOMO",
                     "email": "taken@example.com",

@@ -5,6 +5,8 @@ from modules.users.schemas import (
     PhotoOut,
     UserLocationInput,
     UserAccountInput,
+    UserProfileInput,
+    EditProfileInput
 )
 from typing import Any, List, Optional, Type, TypeVar
 from pydantic import BaseModel
@@ -21,6 +23,12 @@ from core.config import settings
 import imghdr
 import uuid
 from pathlib import Path
+from modules.notifications.outbox_repository import OutboxRepository
+from core.config import settings
+from modules.users.exceptions import (
+    EmailAlreadyTakenException,
+    UsernameAlreadyTakenException
+)
 
 UPLOAD_DIR = Path("uploads")
 MAX_SIZE = 5 * 1024 * 1024
@@ -61,11 +69,11 @@ class UsersRepository:
     async def patch_user_profile(
             self,
             current_user_id,
-            payload
+            payload: UserProfileInput
             ) -> Optional[UserProfile]:
         query = """
                 UPDATE users
-                set gender = $2, sexual_preference = $3, age = $4, bio = $5
+                SET gender = $2, sexual_preference = $3, age = $4, bio = $5
                 WHERE id = $1
                 RETURNING id, email, username, first_name, last_name, is_verified, created_at,
                 gender, sexual_preference, age, bio,
@@ -80,6 +88,27 @@ class UsersRepository:
             payload.age,
             payload.bio,
             )
+
+    async def edit_profile(
+            self,
+            current_user_id: int,
+            payload: EditProfileInput,
+    ) -> Optional[UserProfile]:
+        profile_payload = UserProfileInput(
+            gender=payload.gender,
+            sexual_preference=payload.sexual_preference,
+            age=payload.age,
+            bio=payload.bio,
+        )
+        location_payload = UserLocationInput(
+            latitude=payload.latitude,
+            longitude=payload.longitude,
+            location_label=payload.location_label,
+            location_consent=payload.location_consent,
+        )
+        async with self.connection.transaction():
+            await self.patch_user_profile(current_user_id, profile_payload)
+            return await self.update_location(current_user_id, location_payload)
 
     async def update_location(
             self,
@@ -107,6 +136,16 @@ class UsersRepository:
             payload.location_consent,
         )
 
+    def _raise_account_unique_violation(
+            self,
+            exc: asyncpg.UniqueViolationError,
+            payload: UserAccountInput,
+    ) -> None:
+        haystack = f"{exc.constraint_name or ''} {exc.detail or ''}".lower()
+        if "username" in haystack:
+            raise UsernameAlreadyTakenException(payload.username) from None
+        raise EmailAlreadyTakenException(payload.email) from None
+
     async def update_account(
             self,
             current_user_id: int,
@@ -117,9 +156,10 @@ class UsersRepository:
         if not reverify_email:
             query = f"""
                     UPDATE users
-                    SET first_name = $2,
-                        last_name = $3,
-                        email = $4
+                    SET username = $2,
+                        first_name = $3,
+                        last_name = $4,
+                        email = $5
                     WHERE id = $1
                     RETURNING {USER_COLUMNS}
                     """
@@ -128,21 +168,23 @@ class UsersRepository:
                     UserProfile,
                     query,
                     current_user_id,
+                    payload.username,
                     payload.first_name,
                     payload.last_name,
                     payload.email,
                 )
-            except asyncpg.UniqueViolationError:
-                raise EmailAlreadyTakenException(payload.email) from None
+            except asyncpg.UniqueViolationError as e:
+                self._raise_account_unique_violation(e, payload)
 
         email_token = str(uuid.uuid4())
         query = f"""
                 UPDATE users
-                SET first_name = $2,
-                    last_name = $3,
-                    email = $4,
+                SET username = $2,
+                    first_name = $3,
+                    last_name = $4,
+                    email = $5,
                     is_verified = FALSE,
-                    verification_token = $5
+                    verification_token = $6
                 WHERE id = $1
                 RETURNING {USER_COLUMNS}
                 """
@@ -152,6 +194,7 @@ class UsersRepository:
                     UserProfile,
                     query,
                     current_user_id,
+                    payload.username,
                     payload.first_name,
                     payload.last_name,
                     payload.email,
@@ -167,8 +210,8 @@ class UsersRepository:
                     max_attempts=settings.OUTBOX_MAX_ATTEMPTS,
                 )
                 return profile
-        except asyncpg.UniqueViolationError:
-            raise EmailAlreadyTakenException(payload.email) from None
+        except asyncpg.UniqueViolationError as e:
+            self._raise_account_unique_violation(e, payload)
     
     async def add_one_tag(
             self,
@@ -380,3 +423,13 @@ class UsersRepository:
             user_id,
         )
 
+    async def change_password(
+        self,
+        hashed_password: str,
+        current_user_id: int,
+    ) -> None:
+        await self.connection.execute(
+            "UPDATE users SET password_hash = $2 WHERE id = $1",
+            current_user_id,
+            hashed_password,
+        )

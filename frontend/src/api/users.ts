@@ -7,7 +7,12 @@ import {
     apiPutFormData,
 } from "./client"
 import type { UserProfile, Tag, TagInput, Photo } from "../types/user"
-import type { ProfileValues } from "@/schemas/users"
+import type {
+    AccountValues,
+    EditProfileValues,
+    PasswordChangeValues,
+    ProfileValues,
+} from "@/schemas/users"
 
 export async function getUserProfile(token: string): Promise<UserProfile> {
     return apiGet<UserProfile>("/users/me", {token})
@@ -15,6 +20,18 @@ export async function getUserProfile(token: string): Promise<UserProfile> {
 
 export async function updateUserProfile(token: string, body: ProfileValues): Promise<UserProfile> {
     return apiPatch<UserProfile>("/users/me", body, {token})
+}
+
+export async function editUserProfile(token: string, body: EditProfileValues): Promise<UserProfile> {
+    return apiPatch<UserProfile>("/users/me/profile", body, {token})
+}
+
+export async function editUserAccount(token: string, body: AccountValues): Promise<UserProfile> {
+    return apiPatch<UserProfile>("/users/me/account", body, {token})
+}
+
+export async function changePassword(token: string, passwords: PasswordChangeValues): Promise<{message: string}> {
+    return apiPatch<{message: string}>("/users/me/password-change", passwords, {token})
 }
 
 export async function getMyTags(token: string): Promise<Tag[]> {

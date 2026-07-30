@@ -13,6 +13,10 @@ from modules.tags.controller import tags_router
 from modules.social.controller import social_router
 from modules.discovery.controller import discovery_router
 from modules.users.repository import UPLOAD_DIR
+import os
+
+origins = os.getenv("CORS_ORIGINS", "http://localhost:5173")
+allow_origins = [origin.strip() for origin in origins.split(',') if origin.strip()]
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 app = FastAPI(title="Matcha API", version="1.0", lifespan=db_lifespan)
@@ -24,7 +28,7 @@ register_social_exception_handlers(app)
 register_discovery_exception_handlers(app)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=allow_origins,
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True

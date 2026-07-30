@@ -10,6 +10,7 @@ __all__ = [
     "DuplicateEmailException",
     "DuplicateUsernameException",
     "InvalidCredentialsException",
+    "NoPasswordSetException",
     "AccountNotVerifiedException",
     "OAuthExchangeException",
     "InvalidVerificationTokenException",
@@ -43,6 +44,11 @@ class InvalidCredentialsException(AuthException):
     def __init__(self) -> None:
         super().__init__("Invalid username or password.")
 
+class NoPasswordSetException(AuthException):
+    code = "NO_PASSWORD_SET"
+
+    def __init__(self) -> None:
+        super().__init__("This account does not have a password set.")
 
 class AccountNotVerifiedException(AuthException):
     code = "ACCOUNT_NOT_VERIFIED"

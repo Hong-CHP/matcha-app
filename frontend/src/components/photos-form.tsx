@@ -9,23 +9,23 @@ import { useRef, useState } from "react"
 type PhotosFormProps = {
     photoList: Photo[],
     serverError: string | null,
-    handleGetMyPhotos: ()=>Promise<void>,
     handleAddPhoto: (photo_input: File)=>Promise<void>,
     handleAsAvatar: (photo_id: number)=>Promise<void>,
     handlePatchPhoto: (photo_id: number, photo_input: File)=>Promise<void>,
     handleDeletePhoto: (photo_id: number)=>Promise<void>
-    onFinish: ()=>void
+    onFinish?: ()=>void,
+    showFinish: boolean
 }
 
 function PhotosForm({
     photoList,
     serverError,
-    handleGetMyPhotos,
     handleAddPhoto,
     handleAsAvatar,
     handlePatchPhoto,
     handleDeletePhoto,
     onFinish,
+    showFinish,
 } : PhotosFormProps) {
     const [ modify, setModify ] = useState(false)
     const [ photoId, setPhotoId] = useState<number | null>(null)
@@ -57,7 +57,7 @@ function PhotosForm({
 
     return (
         <>
-            <FieldGroup>
+            <FieldGroup className="flex flex-col gap-4 w-full">
                 <Field>
                     <FieldLabel htmlFor="user_photos">Please upload your photos:</FieldLabel>
                     <FieldDescription>Maximun 5 photos, and please choose one as your profile photo.</FieldDescription>
@@ -91,7 +91,7 @@ function PhotosForm({
                 )}
                 <Field>
                     <FieldLabel htmlFor="user_photos"></FieldLabel>
-                    <Input 
+                    <Input
                         ref={fileInputRef}
                         id="user_photos"
                         type="file"
@@ -105,12 +105,14 @@ function PhotosForm({
                     />
                 </Field>
                 {photoList.length > 0 && (
-                    photoList.map(p=>(
-                        <div key={p.id} style={{position: "relative"}}>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {
+                        photoList.map(p=>(
+                            <div key={p.id} style={{position: "relative"}}>
                             <img
                                 src={`${API_BASE_URL}${p.url}`}
                                 onClick={()=>handleModify(p.id)}
-                                className="w-54 h-54 object-cover rounded cursor-pointer"
+                                className="w-34 h-34 md:w-54 md:h-54 object-cover rounded cursor-pointer"
                                 />
                             {p.is_profile_photo && (
                                 <Badge variant="secondary" className="absolute top-1 left-1">
@@ -118,11 +120,21 @@ function PhotosForm({
                                 </Badge>
                             )}
                         </div>
-                    ))
+                        ))
+                    }
+                    </div>
                 )}
-                <Field>
-                    <Button onClick={()=>onFinish()}>Finish</Button>
-                </Field>
+                {photoList?.length < 1 && (
+                    <FieldError>You should upload minimum one photo.</FieldError>
+                )}
+                {photoList?.length > 0 && !photoList.find(p=>p.is_profile_photo) && (
+                    <FieldError>You should choose one photo as your profile photo.</FieldError>
+                )}
+                {showFinish && onFinish && (
+                    <Field>
+                        <Button onClick={()=>onFinish()} disabled={photoList.length < 1 || !photoList.find(p=>p.is_profile_photo)}>Finish</Button>
+                    </Field>
+                )}
             </FieldGroup>
         </>
     )

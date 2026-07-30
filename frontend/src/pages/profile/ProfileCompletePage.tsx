@@ -1,12 +1,12 @@
-import useUserProfile from "@/hooks/useUserProfile"
+import useUserProfile from "@/users/useUserProfile"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/card"
 import ProfileForm from "@/components/profile-form"
-import useProfileForm from "@/hooks/useProfileForm"
+import useProfileForm from "@/users/useProfileForm"
 import { useState } from "react"
-import useProfileTags from "@/hooks/useProfileTags"
+import useProfileTags from "@/users/useProfileTags"
 import TagsForm from "@/components/tags-form"
 import PhotosForm from "@/components/photos-form"
-import useProfilePhotos from "@/hooks/useProfilePhotos"
+import useProfilePhotos from "@/users/useProfilePhotos"
 import { useAuth } from "@/auth/useAuth"
 import { useNavigate } from "react-router-dom"
 
@@ -20,7 +20,6 @@ export function ProfileCompletePage() {
   const {
         register,
         errors,
-        isSubmitting,
         control,
         serverError: profileError,
         onSubmit,
@@ -62,7 +61,7 @@ export function ProfileCompletePage() {
   }
 
   return (
-    <Card>
+    <Card className="max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Welcome, {profile?.username}</CardTitle>
         <CardDescription>Please complete your profile!</CardDescription>
@@ -72,7 +71,6 @@ export function ProfileCompletePage() {
           <ProfileForm 
           register={register}
           errors={errors}
-          isSubmitting={isSubmitting}
           control={control}
           serverError={profileError}
           onSubmit={onSubmit}
@@ -90,6 +88,7 @@ export function ProfileCompletePage() {
             handleAddTag = {handleAddTag}
             handleDeleteTag = {handleDeleteTag}
             nextStep = {goPhotos}
+            showNextStep = {true}
           />
         )}
         {completeProfileStep == "photos" && (
@@ -102,6 +101,7 @@ export function ProfileCompletePage() {
             handlePatchPhoto = {handlePatchPhoto}
             handleDeletePhoto = {handleDeletePhoto}
             onFinish = {handleFinished}
+            showFinish = {true}
           />
         )}
       </CardContent>

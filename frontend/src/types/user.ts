@@ -11,6 +11,11 @@ export type UserProfile = {
     age: number | null
     bio: string | null
     is_profile_completed: boolean
+    latitude: number | null
+    longitude: number | null
+    location_label: string | null
+    location_consent: boolean
+    last_connection: string
 }
 
 export type Tag = {

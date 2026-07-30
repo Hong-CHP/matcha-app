@@ -86,6 +86,7 @@ class MailtrapClient:
         except Exception as e:
             raise MailtrapException(f"Failed to send verification email.") from e
 
+
 def build_mailtrap_client() -> MailtrapClient:
     token = settings.MAILTRAP_API_KEY.get_secret_value()
     if not token:

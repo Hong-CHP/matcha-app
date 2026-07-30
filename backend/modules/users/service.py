@@ -4,16 +4,25 @@ from modules.users.schemas import (
     PhotoOut,
     UserLocationInput,
     UserAccountInput,
+    UserProfileInput,
+    EditProfileInput,
+    PasswordChangeInput
 )
 from modules.users.exceptions import (
     UserNotFoundException,
     InvalidLocationException,
+)
+from modules.auth.exceptions import (
+    InvalidCredentialsException,
+    NoPasswordSetException,
+    AccountNotVerifiedException,
 )
 from modules.tags.schemas import TagInput, TagOut
 from modules.tags.exceptions import TagContentProfanity
 from modules.tags.service import profanity
 from typing import List
 from fastapi import UploadFile
+import bcrypt
 
 
 class UsersService:
@@ -47,8 +56,8 @@ class UsersService:
     
     async def patch_profile(
             self,
-            current_user_id,
-            payload
+            current_user_id: int,
+            payload: UserProfileInput
             ) -> UserProfile:
         user_profile = await self.repository.patch_user_profile(current_user_id, payload)
         if not user_profile:
@@ -81,6 +90,16 @@ class UsersService:
             payload,
             reverify_email=email_changed,
         )
+        if not user_profile:
+            raise UserNotFoundException()
+        return user_profile
+    
+    async def edit_profile(
+            self,
+            current_user_id: int,
+            payload: EditProfileInput
+            ) -> UserProfile:
+        user_profile = await self.repository.edit_profile(current_user_id, payload)
         if not user_profile:
             raise UserNotFoundException()
         return user_profile
@@ -141,3 +160,23 @@ class UsersService:
             current_user_id: int
         ) -> PhotoOut:
         return await self.repository.patch_photo_by_new(photo_id, file, current_user_id)
+
+    async def change_password(
+        self,
+        passwords: PasswordChangeInput,
+        current_user_id: int,
+) -> None:
+        from modules.auth.service import AuthService
+        from modules.auth.repository import AuthRepository
+        user = await AuthRepository(self.repository.connection).find_by_id(current_user_id)
+        if not user:
+            raise InvalidCredentialsException()
+        if not user.password_hash:
+            raise NoPasswordSetException()
+        if not user.is_verified:
+            raise AccountNotVerifiedException()
+        if not bcrypt.checkpw(passwords.current_password.encode("utf-8"), user.password_hash.encode("utf-8")):
+            raise InvalidCredentialsException()
+
+        hashed_password = AuthService(AuthRepository(self.repository.connection)).hash_password(passwords.new_password)
+        await self.repository.change_password(hashed_password, current_user_id)

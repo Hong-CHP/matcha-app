@@ -8,6 +8,7 @@ from modules.users.exceptions import (
     MaxPhotosReachedException,
     InvalidLocationException,
     EmailAlreadyTakenException,
+    UsernameAlreadyTakenException
 )
 
 _EXCEPTION_STATUS = {
@@ -17,6 +18,7 @@ _EXCEPTION_STATUS = {
     MaxPhotosReachedException: status.HTTP_406_NOT_ACCEPTABLE,
     InvalidLocationException: status.HTTP_400_BAD_REQUEST,
     EmailAlreadyTakenException: status.HTTP_409_CONFLICT,
+    UsernameAlreadyTakenException: status.HTTP_409_CONFLICT,
 }
 
 

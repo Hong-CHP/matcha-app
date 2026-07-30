@@ -5,6 +5,7 @@ import { useAuth } from "@/auth/useAuth"
 import { resolveErrorMessage } from "@/i18n/errors"
 import type { Tag } from "@/types/user"
 import { useCallback, useEffect, useState } from "react"
+import { trim } from "zod"
 
 function useProfileTags() {
     const { accessToken } = useAuth()
@@ -44,9 +45,18 @@ function useProfileTags() {
     }
 
     const handleAddTag = async (tag_name: string) => {
+        if (!tag_name)
+            return
+        const trimTag = tag_name.trim()
+        if (trimTag.length == 0)
+            return
+        if (tagsList.find(t=>t.name.toLowerCase() === trimTag.toLowerCase())) {
+            setServerError("You have already added the same tag")
+            return
+        }
         setServerError(null)
         try {
-            const newTag: Tag = await postProfileTags(accessToken!, {name: tag_name})
+            const newTag: Tag = await postProfileTags(accessToken!, {name: trimTag})
             setTagsList(prev=>([
                 ...prev,
                 newTag

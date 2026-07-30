@@ -108,11 +108,11 @@ class OutboxRepository:
         await self.connection.execute(
             """
             UPDATE email_outbox
-            SET status = 'sent', processed_at = $2, last_error = NULL
+            SET status = 'sent', processed_at = NOW(), last_error = NULL
             WHERE id = $1
             """,
             message_id,
-            datetime.datetime.now(datetime.timezone.utc),
+            # datetime.datetime.now(datetime.timezone.utc),
         )
 
     async def mark_failed(self, message_id: int, error: str, *, retry: bool) -> None:
