@@ -20,6 +20,7 @@ services:
       - ./backend/database/migrations/0008_add_likes_and_visits.sql:/docker-entrypoint-initdb.d/0008_add_likes_and_visits.sql
       - ./backend/database/migrations/0009_add_blocks_and_reports.sql:/docker-entrypoint-initdb.d/0009_add_blocks_and_reports.sql
       - ./backend/database/migrations/0010_create_in_app_notifications.sql:/docker-entrypoint-initdb.d/0010_create_in_app_notifications.sql
+      - ./backend/database/migrations/0011_create_chat_messages.sql:/docker-entrypoint-initdb.d/0011_create_chat_messages.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-matcha}"]
       interval: 5s
