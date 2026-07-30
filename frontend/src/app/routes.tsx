@@ -31,8 +31,13 @@ export function AppRoutes() {
         </Route>
       </Route>
 
-      <Route path="/auth/verify" element={<VerifyEmailPage />} />
-      <Route path="/auth/callback/42" element={<FortyTwoCallbackPage />} />
+      {/* Token-driven entry points: reachable while logged in or out, so they
+          sit outside PublicOnlyRoute but still need the layout landmarks. */}
+      <Route element={<AuthLayout />}>
+        <Route path="/auth/verify" element={<VerifyEmailPage />} />
+        <Route path="/auth/callback/42" element={<FortyTwoCallbackPage />} />
+        <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+      </Route>
 
       <Route element={<PublicOnlyRoute />}>
         <Route element={<AuthLayout />}>
@@ -42,8 +47,6 @@ export function AppRoutes() {
           <Route path="/auth/resend-verification" element={<ResendVerificationPage />} />
         </Route>
       </Route>
-
-      <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
     </Routes>
   )
 }

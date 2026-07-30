@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { ShieldAlertIcon } from 'lucide-react'
 import { ApiError } from '../../api/client'
 import * as authApi from '../../api/auth'
 import { useAuth } from '../../auth/useAuth'
 import { validateOAuthState, clearOAuthState } from '../../auth/oauthState'
 import { resolveErrorMessage } from '../../i18n/errors'
+import { AuthStatusCard } from '../../components/auth-status-card'
+import { Button } from '../../components/ui/button'
+import { Spinner } from '../../components/ui/spinner'
 
 function getOAuthValidationError(
   code: string | null,
@@ -61,18 +65,24 @@ export function FortyTwoCallbackPage() {
 
   if (error) {
     return (
-      <div>
-        <h1>42 login</h1>
-        <p>{error}</p>
-        <Link to="/auth/login">Go to login</Link>
-      </div>
+      <AuthStatusCard
+        icon={<ShieldAlertIcon />}
+        title="42 sign-in didn't complete"
+        description={error}
+        action={
+          <Button nativeButton={false} render={<Link to="/auth/login" />}>
+            Back to login
+          </Button>
+        }
+      />
     )
   }
 
   return (
-    <div>
-      <h1>42 login</h1>
-      <p>Completing sign in...</p>
-    </div>
+    <AuthStatusCard
+      icon={<Spinner />}
+      title="Completing sign in"
+      description="Finishing up with 42."
+    />
   )
 }

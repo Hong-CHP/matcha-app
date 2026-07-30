@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { MailWarningIcon } from 'lucide-react'
 import { ApiError } from '../../api/client'
 import * as authApi from '../../api/auth'
 import { useAuth } from '../../auth/useAuth'
 import { resolveErrorMessage } from '../../i18n/errors'
+import { AuthStatusCard } from '../../components/auth-status-card'
+import { Button } from '../../components/ui/button'
+import { Spinner } from '../../components/ui/spinner'
 
 export function VerifyEmailPage() {
   const navigate = useNavigate()
@@ -44,18 +48,27 @@ export function VerifyEmailPage() {
 
   if (error) {
     return (
-      <div>
-        <h1>Email verification</h1>
-        <p>{error}</p>
-        <Link to="/auth/login">Go to login</Link>
-      </div>
+      <AuthStatusCard
+        icon={<MailWarningIcon />}
+        title="We couldn't verify your email"
+        description={error}
+        action={
+          <Button
+            nativeButton={false}
+            render={<Link to="/auth/resend-verification" />}
+          >
+            Send a new link
+          </Button>
+        }
+      />
     )
   }
 
   return (
-    <div>
-      <h1>Email verification</h1>
-      <p>Verifying your account...</p>
-    </div>
+    <AuthStatusCard
+      icon={<Spinner />}
+      title="Verifying your account"
+      description="This only takes a moment."
+    />
   )
 }

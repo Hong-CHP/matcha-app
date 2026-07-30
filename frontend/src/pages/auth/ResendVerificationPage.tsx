@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link } from 'react-router-dom'
 import { ApiError } from '../../api/client'
 import * as authApi from '../../api/auth'
 import {
@@ -9,6 +8,7 @@ import {
   type ResendVerificationValues,
 } from '../../schemas/auth'
 import { resolveErrorMessage } from '../../i18n/errors'
+import { ResendVerificationForm } from '../../components/resend-verification-form'
 
 export function ResendVerificationPage() {
   const {
@@ -37,23 +37,13 @@ export function ResendVerificationPage() {
   }
 
   return (
-    <div>
-      <h1>Resend verification</h1>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input id="email" type="email" {...register('email')} />
-          {errors.email && <p>{errors.email.message}</p>}
-        </div>
-        <button type="submit" disabled={isSubmitting}>
-          Resend email
-        </button>
-      </form>
-      {message && <p>{message}</p>}
-      {serverError && <p>{serverError}</p>}
-      <p>
-        <Link to="/auth/login">Back to login</Link>
-      </p>
-    </div>
+    <ResendVerificationForm
+      register={register}
+      errors={errors}
+      isSubmitting={isSubmitting}
+      serverError={serverError}
+      successMessage={message}
+      onSubmit={handleSubmit(onSubmit)}
+    />
   )
 }

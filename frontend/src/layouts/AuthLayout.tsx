@@ -2,10 +2,18 @@ import { Outlet } from 'react-router-dom'
 
 export function AuthLayout() {
   return (
-    <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-4xl">
-        <Outlet />
-      </div>
+    <div className="flex min-h-svh flex-col bg-muted">
+      <header className="flex items-center justify-center p-6">
+        <span className="text-lg font-semibold tracking-tight">Matcha</span>
+      </header>
+      <main className="flex flex-1 items-center justify-center px-6 pb-6 md:px-10">
+        <div className="w-full max-w-4xl">
+          <Outlet />
+        </div>
+      </main>
+      <footer className="p-6 text-center text-sm text-muted-foreground">
+        &copy; {new Date().getFullYear()} Matcha
+      </footer>
     </div>
   )
 }

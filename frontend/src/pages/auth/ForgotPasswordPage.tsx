@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link } from 'react-router-dom'
 import { ApiError } from '../../api/client'
 import * as authApi from '../../api/auth'
 import {
@@ -9,6 +8,7 @@ import {
   type ForgotPasswordValues,
 } from '../../schemas/auth'
 import { resolveErrorMessage } from '../../i18n/errors'
+import { ForgotPasswordForm } from '../../components/forgot-password-form'
 
 export function ForgotPasswordPage() {
   const {
@@ -37,23 +37,13 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div>
-      <h1>Forgot password</h1>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input id="email" type="email" {...register('email')} />
-          {errors.email && <p>{errors.email.message}</p>}
-        </div>
-        <button type="submit" disabled={isSubmitting}>
-          Send reset link
-        </button>
-      </form>
-      {message && <p>{message}</p>}
-      {serverError && <p>{serverError}</p>}
-      <p>
-        <Link to="/auth/login">Back to login</Link>
-      </p>
-    </div>
+    <ForgotPasswordForm
+      register={register}
+      errors={errors}
+      isSubmitting={isSubmitting}
+      serverError={serverError}
+      successMessage={message}
+      onSubmit={handleSubmit(onSubmit)}
+    />
   )
 }
