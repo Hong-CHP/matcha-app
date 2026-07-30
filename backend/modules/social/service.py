@@ -20,11 +20,11 @@ from modules.social.schemas import (
     LikeReceivedOut,
     BlockedUserOut,
 )
+from core.presence import ONLINE_WINDOW_SECONDS
 from typing import Any, List, Optional
 
 FAME_LIKE_DELTA = 5
 FAME_VISIT_DELTA = 1
-ONLINE_WINDOW_SECONDS = 900
 
 logger = logging.getLogger(__name__)
 
@@ -79,8 +79,9 @@ class SocialService:
             inserted = await self.social_repo.upsert_visit(viewer_id, target_id)
             if inserted:
                 await self.users_repo.bump_fame(target_id, FAME_VISIT_DELTA)
-        if inserted:
-            await self._emit(target_id, "visited", viewer_id)
+        # Emit on every successful visit (including revisits that only bump visited_at).
+        # Fame still awards only on first insert.
+        await self._emit(target_id, "visited", viewer_id)
         return OkResponse()
 
     async def list_visitors(self, user_id: int, limit: int, offset: int) -> List[VisitorOut]:

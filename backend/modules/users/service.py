@@ -23,11 +23,10 @@ from modules.social.exceptions import BlockedException
 from modules.tags.schemas import TagInput, TagOut
 from modules.tags.exceptions import TagContentProfanity
 from modules.tags.service import profanity
+from core.presence import ONLINE_WINDOW_SECONDS
 from typing import List, Optional, Any
 from fastapi import UploadFile
 import bcrypt
-
-ONLINE_WINDOW_SECONDS = 900  # twin of social.service; do not diverge
 
 
 class UsersService:

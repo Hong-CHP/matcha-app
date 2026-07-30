@@ -5,8 +5,9 @@ from modules.social.service import (
     SocialService,
     FAME_LIKE_DELTA,
     FAME_VISIT_DELTA,
-    ONLINE_WINDOW_SECONDS,
 )
+from core.presence import ONLINE_WINDOW_SECONDS
+
 from modules.social.exceptions import (
     CannotVisitSelfException,
     CannotLikeSelfException,
@@ -346,7 +347,12 @@ async def test_should_emit_visited_when_visit_inserted():
     service = SocialService(social, users, notifier=notifier)
     await service.record_visit(1, 2)
     await service.record_visit(1, 2)
-    assert notifier.events == [{"user_id": 2, "type": "visited", "actor_id": 1, "entity_id": None}]
+    # Every successful visit emits (including revisits); fame still once.
+    assert notifier.events == [
+        {"user_id": 2, "type": "visited", "actor_id": 1, "entity_id": None},
+        {"user_id": 2, "type": "visited", "actor_id": 1, "entity_id": None},
+    ]
+    assert users.fame_bumps == [(2, FAME_VISIT_DELTA)]
 
 
 @pytest.mark.asyncio

@@ -3,6 +3,9 @@
 Auth for ``/ws``: JWT via query param ``?token=<jwt>`` using the same secret and
 algorithm as HTTP Bearer auth in ``core.auth``. Anonymous sockets are rejected.
 One registry entry per user id (latest connection wins if the client reconnects).
+
+Security note: query-string JWTs can appear in access logs and Referer headers.
+Acceptable for local eval; prefer a first-message auth handshake before production.
 """
 
 from __future__ import annotations
