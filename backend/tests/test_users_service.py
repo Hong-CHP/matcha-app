@@ -155,6 +155,7 @@ class FakeRepository:
             return None
         return self.user.model_copy(
             update={
+                "username": payload.username,
                 "first_name": payload.first_name,
                 "last_name": payload.last_name,
                 "email": payload.email,
@@ -269,6 +270,7 @@ async def test_update_account_should_keep_verified_when_email_unchanged():
     repo = FakeRepository(user)
     service = UsersService(repo)
     payload = UserAccountInput(
+        username="aaa",
         first_name="New",
         last_name="Name",
         email="aaa@gmail.com",
@@ -285,6 +287,7 @@ async def test_update_account_should_require_reverification_when_email_changes()
     repo = FakeRepository(user)
     service = UsersService(repo)
     payload = UserAccountInput(
+        username="aaa",
         first_name="Ann",
         last_name="MOMO",
         email="new@example.com",
@@ -305,6 +308,7 @@ async def test_update_account_propagates_email_taken():
         await service.update_account(
             1,
             UserAccountInput(
+                username="aaa",
                 first_name="Ann",
                 last_name="MOMO",
                 email="taken@example.com",
@@ -320,6 +324,7 @@ async def test_update_account_should_raise_when_user_missing():
         await service.update_account(
             1,
             UserAccountInput(
+                username="aaa",
                 first_name="Ann",
                 last_name="MOMO",
                 email="a@b.com",

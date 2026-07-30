@@ -127,17 +127,3 @@ class OutboxRepository:
             status,
             error[:2000],
         )
-
-    async def enqueue_email_change_email(
-            self,
-            recipient_email: str,
-            user_id: int,
-            pending_email_token: str,
-            max_attempts: int
-    ) -> None:
-        await self._enqueue(
-            "email_change",
-            recipient_email,
-            {"user_id": user_id, "pending_email_token": pending_email_token},
-            max_attempts
-        )

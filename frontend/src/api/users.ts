@@ -7,8 +7,12 @@ import {
     apiPutFormData,
 } from "./client"
 import type { UserProfile, Tag, TagInput, Photo } from "../types/user"
-import type { AccountValues, PasswordChangeValues, ProfileValues } from "@/schemas/users"
-import type { ResendVerificationValues } from "@/schemas/auth"
+import type {
+    AccountValues,
+    EditProfileValues,
+    PasswordChangeValues,
+    ProfileValues,
+} from "@/schemas/users"
 
 export async function getUserProfile(token: string): Promise<UserProfile> {
     return apiGet<UserProfile>("/users/me", {token})
@@ -18,20 +22,12 @@ export async function updateUserProfile(token: string, body: ProfileValues): Pro
     return apiPatch<UserProfile>("/users/me", body, {token})
 }
 
-export async function editUserProfile(token: string, body: ProfileValues): Promise<UserProfile> {
+export async function editUserProfile(token: string, body: EditProfileValues): Promise<UserProfile> {
     return apiPatch<UserProfile>("/users/me/profile", body, {token})
 }
 
 export async function editUserAccount(token: string, body: AccountValues): Promise<UserProfile> {
     return apiPatch<UserProfile>("/users/me/account", body, {token})
-}
-
-export async function requestEmailChange(token: string, newEmail: ResendVerificationValues): Promise<{message: string}> {
-    return apiPost<{message: string}>("/users/me/email-change", newEmail, {token})
-}
-
-export async function confirmEmailChange(emailChangeToken: string): Promise<UserProfile> {
-    return apiGet<UserProfile>(`/users/me/email-change/confirm?token=${encodeURIComponent(emailChangeToken)}`)
 }
 
 export async function changePassword(token: string, passwords: PasswordChangeValues): Promise<{message: string}> {

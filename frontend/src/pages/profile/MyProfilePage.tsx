@@ -36,7 +36,7 @@ function MyProfilePage() {
             try {
                 const photos = await usersApi.getMyPhotos(accessToken!)
                 const avatar_src = photos.filter(p=>p.is_profile_photo)
-                setAvatar(avatar_src?.[0].url?? null)
+                setAvatar(avatar_src[0]?.url ?? null)
             } catch (err) {
                 if (err instanceof ApiError) {
                     setServerError(resolveErrorMessage(err.code, err.message))

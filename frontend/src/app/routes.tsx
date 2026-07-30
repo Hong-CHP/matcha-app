@@ -15,7 +15,6 @@ import { ResendVerificationPage } from '../pages/auth/ResendVerificationPage'
 import { VerifyEmailPage } from '../pages/auth/VerifyEmailPage'
 import { ProfileCompletePage } from '../pages/profile/ProfileCompletePage'
 import MyProfilePage from '@/pages/profile/MyProfilePage'
-import ConfirmEmailChangePage from '@/pages/profile/ConfirmEmailChangePage'
 
 export function AppRoutes() {
   return (
@@ -34,7 +33,6 @@ export function AppRoutes() {
 
       <Route path="/auth/verify" element={<VerifyEmailPage />} />
       <Route path="/auth/callback/42" element={<FortyTwoCallbackPage />} />
-      <Route path="/users/email-change/confirm" element={<ConfirmEmailChangePage />} />
 
       <Route element={<PublicOnlyRoute />}>
         <Route element={<AuthLayout />}>

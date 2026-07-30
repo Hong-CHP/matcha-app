@@ -49,7 +49,8 @@ function ProfileTab({profile, onSaved} : {profile : UserProfile, onSaved: ()=>vo
             bio: profile.bio!,
             latitude: profile.latitude,
             longitude: profile.longitude,
-            location_label: profile.location_label ?? ""
+            location_label: profile.location_label ?? "",
+            location_consent: profile.location_consent ?? false,
         }
     })
 

@@ -17,14 +17,7 @@ async def handle_password_reset(message: OutboxMessage, mail_client: MailtrapCli
         raise OutboxPayloadError("Reset token is missing in payload")
     await mail_client.send_password_reset_email(message.recipient_email, reset_token)
 
-async def handle_email_change(message: OutboxMessage, mail_client: MailtrapClient) -> None:
-    pending_email_token = message.payload.get("pending_email_token")
-    if not pending_email_token:
-        raise OutboxPayloadError("Pending email token is missing in payload")
-    await mail_client.send_email_change_email(message.recipient_email, pending_email_token)
-    
 HANDLERS: dict[str, OutboxHandler] = {
     "verification": handle_verification,
     "password_reset": handle_password_reset,
-    "email_change": handle_email_change,
 }

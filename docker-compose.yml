@@ -34,7 +34,6 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@database:5432/${POSTGRES_DB:-matcha}
       VERIFICATION_URL_BASE: ${VERIFICATION_URL_BASE:-http://localhost:5173/auth/verify}
-      EMAIL_CHANGE_CONFIRM_URL_BASE: ${EMAIL_CHANGE_CONFIRM_URL_BASE:-http://localhost:5173/users/email-change/confirm}
       PASSWORD_RESET_URL_BASE: ${PASSWORD_RESET_URL_BASE:-http://localhost:5173/auth/reset-password}
       FT_REDIRECT_URI: ${VITE_FT_REDIRECT_URI:-http://localhost:5173/auth/callback/42}
     ports:

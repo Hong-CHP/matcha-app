@@ -136,6 +136,16 @@ class UsersRepository:
             payload.location_consent,
         )
 
+    def _raise_account_unique_violation(
+            self,
+            exc: asyncpg.UniqueViolationError,
+            payload: UserAccountInput,
+    ) -> None:
+        haystack = f"{exc.constraint_name or ''} {exc.detail or ''}".lower()
+        if "username" in haystack:
+            raise UsernameAlreadyTakenException(payload.username) from None
+        raise EmailAlreadyTakenException(payload.email) from None
+
     async def update_account(
             self,
             current_user_id: int,
@@ -164,10 +174,7 @@ class UsersRepository:
                     payload.email,
                 )
             except asyncpg.UniqueViolationError as e:
-                if "username" in str(e.contraint_name) or "username" in str(e.details):
-                    raise UsernameAlreadyTakenException(payload.username) from None
-                elif "email" in str(e.contraint_name) or "email" in str(e.details):
-                    raise EmailAlreadyTakenException(payload.email) from None
+                self._raise_account_unique_violation(e, payload)
 
         email_token = str(uuid.uuid4())
         query = f"""
@@ -203,8 +210,8 @@ class UsersRepository:
                     max_attempts=settings.OUTBOX_MAX_ATTEMPTS,
                 )
                 return profile
-        except asyncpg.UniqueViolationError:
-            raise EmailAlreadyTakenException(payload.email) from None
+        except asyncpg.UniqueViolationError as e:
+            self._raise_account_unique_violation(e, payload)
     
     async def add_one_tag(
             self,
