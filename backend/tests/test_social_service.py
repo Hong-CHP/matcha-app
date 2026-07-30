@@ -46,24 +46,26 @@ class FakeSocialRepository:
         self.visit_inserts.append(inserted)
         return inserted
 
-    async def activate_like(self, from_user_id: int, to_user_id: int) -> bool:
+    async def activate_like(self, from_user_id: int, to_user_id: int) -> tuple[bool, bool]:
         key = (from_user_id, to_user_id)
         existing = self.likes.get(key)
         if existing is None:
             self.likes[key] = "active"
-            self.activate_results.append(True)
-            return True
+            self.activate_results.append((True, True))
+            return True, True
         if existing == "inactive":
             self.likes[key] = "active"
-            self.activate_results.append(False)
-            return False
-        self.activate_results.append(False)
-        return False
+            self.activate_results.append((True, False))
+            return True, False
+        self.activate_results.append((False, False))
+        return False, False
 
-    async def soft_unlike(self, from_user_id: int, to_user_id: int) -> None:
+    async def soft_unlike(self, from_user_id: int, to_user_id: int) -> bool:
         key = (from_user_id, to_user_id)
         if self.likes.get(key) == "active":
             self.likes[key] = "inactive"
+            return True
+        return False
 
     async def is_connected(self, a: int, b: int) -> bool:
         return (
@@ -321,3 +323,74 @@ async def test_relationship_offline_when_stale():
     service = SocialService(social, users)
     flags = await service.get_relationship(1, 2)
     assert flags.is_online is False
+
+
+class FakeNotifier:
+    def __init__(self, fail: bool = False):
+        self.events = []
+        self.fail = fail
+
+    async def create_event(self, user_id, type, actor_id, entity_id=None):
+        if self.fail:
+            raise RuntimeError("notifier down")
+        self.events.append(
+            {"user_id": user_id, "type": type, "actor_id": actor_id, "entity_id": entity_id}
+        )
+
+
+@pytest.mark.asyncio
+async def test_should_emit_visited_when_visit_inserted():
+    social = FakeSocialRepository()
+    users = FakeUsersRepository()
+    notifier = FakeNotifier()
+    service = SocialService(social, users, notifier=notifier)
+    await service.record_visit(1, 2)
+    await service.record_visit(1, 2)
+    assert notifier.events == [{"user_id": 2, "type": "visited", "actor_id": 1, "entity_id": None}]
+
+
+@pytest.mark.asyncio
+async def test_should_emit_liked_when_like_activated():
+    social = FakeSocialRepository()
+    users = FakeUsersRepository()
+    notifier = FakeNotifier()
+    service = SocialService(social, users, notifier=notifier)
+    await service.like(1, 2)
+    assert {"user_id": 2, "type": "liked", "actor_id": 1, "entity_id": None} in notifier.events
+
+
+@pytest.mark.asyncio
+async def test_should_emit_matched_to_both_when_like_connects():
+    social = FakeSocialRepository()
+    users = FakeUsersRepository()
+    notifier = FakeNotifier()
+    service = SocialService(social, users, notifier=notifier)
+    await service.like(1, 2)
+    await service.like(2, 1)
+    matched = [e for e in notifier.events if e["type"] == "matched"]
+    assert {"user_id": 1, "type": "matched", "actor_id": 2, "entity_id": None} in matched
+    assert {"user_id": 2, "type": "matched", "actor_id": 1, "entity_id": None} in matched
+
+
+@pytest.mark.asyncio
+async def test_should_emit_unliked_when_unlike():
+    social = FakeSocialRepository()
+    users = FakeUsersRepository()
+    notifier = FakeNotifier()
+    service = SocialService(social, users, notifier=notifier)
+    await service.like(1, 2)
+    notifier.events.clear()
+    await service.unlike(1, 2)
+    assert notifier.events == [{"user_id": 2, "type": "unliked", "actor_id": 1, "entity_id": None}]
+    await service.unlike(1, 2)
+    assert len(notifier.events) == 1
+
+
+@pytest.mark.asyncio
+async def test_should_not_fail_like_when_notifier_raises():
+    social = FakeSocialRepository()
+    users = FakeUsersRepository()
+    notifier = FakeNotifier(fail=True)
+    service = SocialService(social, users, notifier=notifier)
+    res = await service.like(1, 2)
+    assert res.liked is True

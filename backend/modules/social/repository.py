@@ -56,11 +56,15 @@ class SocialRepository:
         )
         return [VisitorOut.model_validate(dict(r)) for r in rows]
 
-    async def activate_like(self, from_user_id: int, to_user_id: int) -> bool:
-        """Activate like. Return True iff the row was newly inserted (first like ever).
+    async def activate_like(
+        self, from_user_id: int, to_user_id: int
+    ) -> tuple[bool, bool]:
+        """Activate like.
 
-        Soft re-activate of an inactive row sets status=active but returns False
-        so fame is not awarded again.
+        Returns ``(became_active, is_first_insert)``.
+        ``became_active`` is True when status transitions to active (insert or
+        soft re-activate). ``is_first_insert`` is True only for a brand-new row
+        (fame award). Already-active likes return ``(False, False)``.
         """
         row = await self.connection.fetchrow(
             """
@@ -77,11 +81,13 @@ class SocialRepository:
             to_user_id,
         )
         if row is None:
-            return False
-        return bool(row["inserted"])
+            return False, False
+        is_first_insert = bool(row["inserted"])
+        return True, is_first_insert
 
-    async def soft_unlike(self, from_user_id: int, to_user_id: int) -> None:
-        await self.connection.execute(
+    async def soft_unlike(self, from_user_id: int, to_user_id: int) -> bool:
+        """Deactivate like. Return True iff an active like was deactivated."""
+        result = await self.connection.execute(
             """
             UPDATE likes
             SET status = 'inactive', updated_at = NOW()
@@ -90,6 +96,10 @@ class SocialRepository:
             from_user_id,
             to_user_id,
         )
+        try:
+            return int(result.split()[-1]) > 0
+        except (ValueError, IndexError, AttributeError):
+            return False
 
     async def is_connected(self, a: int, b: int) -> bool:
         row = await self.connection.fetchrow(
