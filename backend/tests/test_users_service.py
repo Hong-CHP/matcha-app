@@ -1,13 +1,112 @@
 import pytest
 from datetime import datetime, UTC
-from modules.users.schemas import UserProfile, UserLocationInput, UserAccountInput
+from modules.users.schemas import (
+    UserProfile,
+    UserLocationInput,
+    UserAccountInput,
+    PasswordChangeInput,
+    EditProfileInput
+)
 from modules.users.service import UsersService
 from modules.users.exceptions import (
     UserNotFoundException,
     InvalidLocationException,
     EmailAlreadyTakenException,
 )
+import bcrypt
+from modules.auth.exceptions import (
+    InvalidCredentialsException,
+    NoPasswordSetException,
+)
+from modules.auth.repository import AuthRepository
+from types import SimpleNamespace
+from pydantic import ValidationError
 
+
+class FakeUserAuth:
+    def __init__(self, id=1, password_hash=None, is_verified=True):
+        self.id = id
+        self.password_hash = password_hash
+        self.is_verified = is_verified
+
+@pytest.mark.asyncio
+async def test_change_password_wrong_current_password(monkeypatch):
+    oldPwd = bcrypt.hashpw(b"OldPwd123!", bcrypt.gensalt()).decode("utf-8")
+    fake_auth_user = FakeUserAuth(password_hash=oldPwd, is_verified=True)
+
+    async def fake_user_by_id(self, user_id):
+        return fake_auth_user
+
+    monkeypatch.setattr(AuthRepository, "find_by_id", fake_user_by_id)
+    service = UsersService(repository=SimpleNamespace(connection=None))
+
+    passwords = PasswordChangeInput(
+        current_password="WrongPassword123!",
+        new_password="Xk9#mQvzTr4!!",
+        confirm_password="Xk9#mQvzTr4!!",
+    )
+
+    with pytest.raises(InvalidCredentialsException):
+        await service.change_password(passwords, 1)
+
+
+@pytest.mark.asyncio
+async def test_change_password_no_password_set(monkeypatch):
+    fake_auth_user = FakeUserAuth(password_hash=None, is_verified=True)
+
+    async def fake_user_by_id(self, user_id):
+        return fake_auth_user
+
+    monkeypatch.setattr(AuthRepository, "find_by_id", fake_user_by_id)
+    service = UsersService(repository=SimpleNamespace(connection=None))
+
+    passwords = PasswordChangeInput(
+        current_password="emptySoAnything!",
+        new_password="Xk9#mQvzTr4!!",
+        confirm_password="Xk9#mQvzTr4!!",
+    )
+
+    with pytest.raises(NoPasswordSetException):
+        await service.change_password(passwords, 1)
+
+
+@pytest.mark.asyncio
+async def test_change_password_success(monkeypatch):
+    oldPwd = bcrypt.hashpw(b"OldPwd123!", bcrypt.gensalt()).decode("utf-8")
+    fake_auth_user = FakeUserAuth(password_hash=oldPwd, is_verified=True)
+
+    async def fake_user_by_id(self, user_id):
+        return fake_auth_user
+
+    monkeypatch.setattr(AuthRepository, "find_by_id", fake_user_by_id)
+
+    class FakeUserRepo:
+        def __init__(self):
+            self.connection = None
+            self.change_password_called = None
+
+        async def change_password(self, hashed_password, current_user_id):
+            self.change_password_called = (hashed_password, current_user_id)
+
+    fake_repo = FakeUserRepo()
+    service = UsersService(fake_repo)
+    
+    passwords = PasswordChangeInput(
+        current_password="OldPwd123!",
+        new_password="Xk9#mQvzTr4!!",
+        confirm_password="Xk9#mQvzTr4!!",
+    )
+
+    res = await service.change_password(passwords, 1)
+
+    assert res is None
+
+    assert fake_repo.change_password_called is not None
+    hashed_password, current_user_id = fake_repo.change_password_called
+    assert current_user_id == 1
+
+    assert hashed_password != "Xk9#mQvzTr4!!"
+    assert bcrypt.checkpw(b"Xk9#mQvzTr4!!", hashed_password.encode("utf-8"))
 
 class FakeRepository:
     def __init__(self, user, tags=None, photos=None):
@@ -226,3 +325,35 @@ async def test_update_account_should_raise_when_user_missing():
                 email="a@b.com",
             ),
         )
+
+
+def test_edit_profile_rejects_missing_location_label():
+    with pytest.raises(ValidationError):
+        EditProfileInput(
+            gender="female",
+            sexual_preference="man",
+            age=24,
+            bio="hello",
+            latitude=48.85,
+            longitude=2.35,
+            location_label=None,
+            location_consent=True,
+        )
+
+def test_edit_profile_rejects_blank_location_label():
+    with pytest.raises(ValidationError):
+        EditProfileInput(
+            gender="female", sexual_preference="man", age=24, bio="hello",
+            latitude=48.85, longitude=2.35,
+            location_label="   ",
+            location_consent=True,
+        )
+
+def test_edit_profile_accepts_complete_location():
+    profile = EditProfileInput(
+        gender="female", sexual_preference="man", age=24, bio="hello",
+        latitude=48.85, longitude=2.35,
+        location_label="Paris",
+        location_consent=True,
+    )
+    assert profile.location_label == "Paris"
