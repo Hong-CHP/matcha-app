@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import logging
 from modules.social.repository import SocialRepository
 from modules.users.repository import UsersRepository
 from modules.social.exceptions import (
@@ -19,21 +20,53 @@ from modules.social.schemas import (
     LikeReceivedOut,
     BlockedUserOut,
 )
-from typing import List, Optional
+from core.presence import ONLINE_WINDOW_SECONDS
+from typing import Any, List, Optional
 
 FAME_LIKE_DELTA = 5
 FAME_VISIT_DELTA = 1
-ONLINE_WINDOW_SECONDS = 900
+
+logger = logging.getLogger(__name__)
 
 
 class SocialService:
-    def __init__(self, social_repo: SocialRepository, users_repo: UsersRepository):
+    def __init__(
+        self,
+        social_repo: SocialRepository,
+        users_repo: UsersRepository,
+        notifier: Any = None,
+    ):
         self.social_repo = social_repo
         self.users_repo = users_repo
+        self.notifier = notifier
 
     async def _ensure_not_blocked(self, a: int, b: int) -> None:
         if await self.social_repo.is_blocked_either_way(a, b):
             raise BlockedException()
+
+    async def _emit(
+        self,
+        user_id: int,
+        type: str,
+        actor_id: int,
+        entity_id: Optional[int] = None,
+    ) -> None:
+        if self.notifier is None:
+            return
+        try:
+            await self.notifier.create_event(
+                user_id=user_id,
+                type=type,
+                actor_id=actor_id,
+                entity_id=entity_id,
+            )
+        except Exception:
+            logger.exception(
+                "Failed to emit %s notification to user %s from actor %s",
+                type,
+                user_id,
+                actor_id,
+            )
 
     async def record_visit(self, viewer_id: int, target_id: int) -> OkResponse:
         if viewer_id == target_id:
@@ -41,10 +74,14 @@ class SocialService:
         if not await self.social_repo.user_exists(target_id):
             raise SocialUserNotFoundException()
         await self._ensure_not_blocked(viewer_id, target_id)
+        inserted = False
         async with self.social_repo.connection.transaction():
             inserted = await self.social_repo.upsert_visit(viewer_id, target_id)
             if inserted:
                 await self.users_repo.bump_fame(target_id, FAME_VISIT_DELTA)
+        # Emit on every successful visit (including revisits that only bump visited_at).
+        # Fame still awards only on first insert.
+        await self._emit(target_id, "visited", viewer_id)
         return OkResponse()
 
     async def list_visitors(self, user_id: int, limit: int, offset: int) -> List[VisitorOut]:
@@ -58,16 +95,28 @@ class SocialService:
         await self._ensure_not_blocked(from_user_id, to_user_id)
         if not await self.users_repo.has_profile_photo(from_user_id):
             raise ProfilePhotoRequiredException()
+        became_active = False
+        is_first_insert = False
+        connected = False
         async with self.social_repo.connection.transaction():
-            newly_inserted = await self.social_repo.activate_like(from_user_id, to_user_id)
-            if newly_inserted:
+            became_active, is_first_insert = await self.social_repo.activate_like(
+                from_user_id, to_user_id
+            )
+            if is_first_insert:
                 await self.users_repo.bump_fame(to_user_id, FAME_LIKE_DELTA)
             connected = await self.social_repo.is_connected(from_user_id, to_user_id)
+        if became_active:
+            await self._emit(to_user_id, "liked", from_user_id)
+            if connected:
+                await self._emit(from_user_id, "matched", to_user_id)
+                await self._emit(to_user_id, "matched", from_user_id)
         return LikeStateResponse(liked=True, connected=connected)
 
     async def unlike(self, from_user_id: int, to_user_id: int) -> LikeStateResponse:
-        await self.social_repo.soft_unlike(from_user_id, to_user_id)
+        deactivated = await self.social_repo.soft_unlike(from_user_id, to_user_id)
         connected = await self.social_repo.is_connected(from_user_id, to_user_id)
+        if deactivated:
+            await self._emit(to_user_id, "unliked", from_user_id)
         return LikeStateResponse(liked=False, connected=connected)
 
     async def list_likes_received(

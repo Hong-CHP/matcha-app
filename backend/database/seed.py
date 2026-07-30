@@ -1,9 +1,20 @@
-"""Dev-only seed script: populates the matcha DB with fake data for local testing.
+"""Dev-only seed script: populates the matcha DB with fake profiles for local demos.
 
-Usage (from backend/, with the venv/deps active and DATABASE_URL pointing at a
-FRESH database — see backend/database/seed.py --help via README):
+Prerequisites
+  - Run from ``backend/`` with the project venv active and deps installed
+    (``Faker`` is listed in ``requirements.txt``).
+  - ``DATABASE_URL`` must point at a migrated database (e.g. after
+    ``docker compose up`` so init scripts ``0001``–``0009``+ have applied).
+  - Prefer a fresh DB: re-seeding into a non-empty users table will add more
+    rows and may hit unique constraints on email/username.
+
+Usage
     python -m database.seed
     python -m database.seed --users 500
+
+All seeded accounts share the same password (``SEED_PASSWORD``). The script
+prints the user count and that password when it finishes — enough for Hong to
+log in and exercise discovery with volume.
 """
 import argparse
 import asyncio

@@ -7,6 +7,9 @@ from modules.users.repository import UsersRepository
 
 logger = logging.getLogger(__name__)
 
+# Shared presence window for is_online (users public profile + social relationship).
+ONLINE_WINDOW_SECONDS = 900
+
 
 async def get_current_user_id_and_touch(
     user_id: int = Depends(get_current_user_id),

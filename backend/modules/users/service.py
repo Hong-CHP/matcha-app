@@ -1,6 +1,8 @@
+from datetime import datetime, timezone
 from modules.users.repository import UsersRepository
 from modules.users.schemas import (
     UserProfile,
+    PublicProfile,
     PhotoOut,
     UserLocationInput,
     UserAccountInput,
@@ -17,10 +19,12 @@ from modules.auth.exceptions import (
     NoPasswordSetException,
     AccountNotVerifiedException,
 )
+from modules.social.exceptions import BlockedException
 from modules.tags.schemas import TagInput, TagOut
 from modules.tags.exceptions import TagContentProfanity
 from modules.tags.service import profanity
-from typing import List
+from core.presence import ONLINE_WINDOW_SECONDS
+from typing import List, Optional, Any
 from fastapi import UploadFile
 import bcrypt
 
@@ -28,9 +32,11 @@ import bcrypt
 class UsersService:
     def __init__(
             self,
-            repository: UsersRepository
+            repository: UsersRepository,
+            social_repo: Any = None,
     ):
         self.repository = repository
+        self.social_repo = social_repo
     
     async def get_profile(
             self,
@@ -53,7 +59,46 @@ class UsersService:
         )
         
         return current_user.model_copy(update={"is_profile_completed": is_completed})
-    
+
+    async def get_public_profile(
+            self,
+            viewer_id: int,
+            target_id: int,
+    ) -> PublicProfile:
+        if self.social_repo is not None:
+            if await self.social_repo.is_blocked_either_way(viewer_id, target_id):
+                raise BlockedException()
+        target = await self.repository.get_user_by_id(target_id)
+        if not target:
+            raise UserNotFoundException()
+        tags = await self.repository.get_my_tags(target_id)
+        photos = await self.repository.get_my_photos(target_id)
+        return PublicProfile(
+            id=target.id,
+            username=target.username,
+            first_name=target.first_name,
+            last_name=target.last_name,
+            gender=target.gender,
+            sexual_preference=target.sexual_preference,
+            age=target.age,
+            bio=target.bio,
+            fame_rating=target.fame_rating,
+            location_label=target.location_label,
+            last_connection=target.last_connection,
+            is_online=self._is_online(target.last_connection),
+            tags=tags or [],
+            photos=photos or [],
+        )
+
+    @staticmethod
+    def _is_online(last_connection: Optional[datetime]) -> bool:
+        if last_connection is None:
+            return False
+        if last_connection.tzinfo is None:
+            last_connection = last_connection.replace(tzinfo=timezone.utc)
+        age = (datetime.now(timezone.utc) - last_connection).total_seconds()
+        return age <= ONLINE_WINDOW_SECONDS
+
     async def patch_profile(
             self,
             current_user_id: int,

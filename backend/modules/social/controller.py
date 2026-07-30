@@ -4,7 +4,10 @@ from core.database import get_db_connection
 from core.presence import get_current_user_id_and_touch
 from modules.social.repository import SocialRepository
 from modules.users.repository import UsersRepository
+from modules.notifications.repository import InAppNotificationsRepository
+from modules.notifications.service import NotificationsService
 from modules.social.service import SocialService
+from core.ws_hub import hub
 from modules.social.schemas import (
     OkResponse,
     LikeStateResponse,
@@ -22,7 +25,8 @@ social_router = APIRouter(prefix="/social", tags=["social"])
 def get_social_service(
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> SocialService:
-    return SocialService(SocialRepository(db), UsersRepository(db))
+    notifier = NotificationsService(InAppNotificationsRepository(db), hub=hub)
+    return SocialService(SocialRepository(db), UsersRepository(db), notifier=notifier)
 
 @social_router.post("/visits/{target_user_id}", response_model=OkResponse)
 async def create_visit(
