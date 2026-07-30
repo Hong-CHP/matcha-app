@@ -362,3 +362,56 @@ def test_edit_profile_accepts_complete_location():
         location_consent=True,
     )
     assert profile.location_label == "Paris"
+
+
+@pytest.mark.asyncio
+async def test_get_public_profile_should_return_projection_without_email():
+    from modules.users.schemas import PublicProfile, PhotoOut
+    from modules.tags.schemas import TagOut
+
+    target = _complete_user(id=2, email="secret@example.com", username="bob")
+    photos = [PhotoOut(id=1, url="/uploads/a.jpg", is_profile_photo=True)]
+    tags = [TagOut(id=1, name="music")]
+
+    class FakeSocial:
+        async def is_blocked_either_way(self, a: int, b: int) -> bool:
+            return False
+
+    service = UsersService(
+        FakeRepository(target, tags=tags, photos=photos),
+        social_repo=FakeSocial(),
+    )
+    result = await service.get_public_profile(viewer_id=1, target_id=2)
+    assert isinstance(result, PublicProfile)
+    assert result.id == 2
+    assert result.username == "bob"
+    assert result.fame_rating == 0
+    assert result.tags == tags
+    assert result.photos == photos
+    assert "email" not in result.model_dump()
+
+
+@pytest.mark.asyncio
+async def test_get_public_profile_should_raise_when_blocked():
+    from modules.social.exceptions import BlockedException
+
+    target = _complete_user(id=2)
+
+    class FakeSocial:
+        async def is_blocked_either_way(self, a: int, b: int) -> bool:
+            return True
+
+    service = UsersService(FakeRepository(target), social_repo=FakeSocial())
+    with pytest.raises(BlockedException):
+        await service.get_public_profile(viewer_id=1, target_id=2)
+
+
+@pytest.mark.asyncio
+async def test_get_public_profile_should_raise_when_missing():
+    class FakeSocial:
+        async def is_blocked_either_way(self, a: int, b: int) -> bool:
+            return False
+
+    service = UsersService(FakeRepository(None), social_repo=FakeSocial())
+    with pytest.raises(UserNotFoundException):
+        await service.get_public_profile(viewer_id=1, target_id=99)

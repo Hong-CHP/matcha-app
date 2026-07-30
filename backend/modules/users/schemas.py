@@ -1,7 +1,8 @@
 from pydantic import BaseModel, EmailStr, Field, model_validator, field_validator
 from datetime import datetime
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 from modules.auth.schemas import validate_password_strength
+from modules.tags.schemas import TagOut
 
 class UserProfile(BaseModel):
     id: int
@@ -75,3 +76,21 @@ class PasswordChangeInput(BaseModel):
         if self.new_password != self.confirm_password:
             raise ValueError("New password and confirm password must match")
         return self
+
+
+# ADR-0001: public projection — never include email/password/tokens/coords/consent
+class PublicProfile(BaseModel):
+    id: int
+    username: str
+    first_name: str
+    last_name: str
+    gender: Optional[Literal["male", "female", "other"]] = None
+    sexual_preference: Optional[Literal["man", "woman", "bisexual"]] = None
+    age: Optional[int] = None
+    bio: Optional[str] = None
+    fame_rating: int = 0
+    location_label: Optional[str] = None
+    last_connection: Optional[datetime] = None
+    is_online: bool = False
+    tags: List[TagOut] = Field(default_factory=list)
+    photos: List[PhotoOut] = Field(default_factory=list)

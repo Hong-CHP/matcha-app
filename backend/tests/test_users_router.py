@@ -302,3 +302,59 @@ class TestAuthMeStaysThin:
         assert "location_label" not in body
         assert "location_consent" not in body
         assert "profile_completed" in body
+
+
+class TestGetPublicProfile:
+    def test_should_return_401_when_unauthenticated(self):
+        response = client.get("/users/2")
+        assert response.status_code == 401
+
+    def test_should_return_public_projection_when_authenticated(self, override_service, fake_user):
+        target = fake_user.model_copy(update={
+            "id": 2,
+            "email": "secret@example.com",
+            "username": "bob",
+            "fame_rating": 12,
+            "location_label": "Paris, France",
+        })
+        override_service.repository.users[2] = target
+        override_service.repository.tags = []
+        override_service.repository.photos = []
+
+        class FakeSocial:
+            async def is_blocked_either_way(self, a, b):
+                return False
+
+        override_service.social_repo = FakeSocial()
+        token = make_token(1)
+        response = client.get("/users/2", headers={"Authorization": f"Bearer {token}"})
+        assert response.status_code == 200
+        body = response.json()
+        assert body["id"] == 2
+        assert body["username"] == "bob"
+        assert body["fame_rating"] == 12
+        assert body["location_label"] == "Paris, France"
+        assert "email" not in body
+        assert "is_online" in body
+
+    def test_should_return_403_when_blocked(self, override_service, fake_user):
+        override_service.repository.users[2] = fake_user.model_copy(update={"id": 2})
+
+        class FakeSocial:
+            async def is_blocked_either_way(self, a, b):
+                return True
+
+        override_service.social_repo = FakeSocial()
+        token = make_token(1)
+        response = client.get("/users/2", headers={"Authorization": f"Bearer {token}"})
+        assert response.status_code == 403
+
+    def test_should_return_404_when_missing(self, override_service):
+        class FakeSocial:
+            async def is_blocked_either_way(self, a, b):
+                return False
+
+        override_service.social_repo = FakeSocial()
+        token = make_token(1)
+        response = client.get("/users/99", headers={"Authorization": f"Bearer {token}"})
+        assert response.status_code == 404

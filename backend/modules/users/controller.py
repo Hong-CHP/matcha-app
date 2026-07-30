@@ -6,6 +6,7 @@ from modules.users.repository import UsersRepository
 from modules.users.service import UsersService
 from modules.users.schemas import (
     UserProfile,
+    PublicProfile,
     UserProfileInput,
     PhotoOut,
     UserLocationInput,
@@ -13,6 +14,7 @@ from modules.users.schemas import (
     EditProfileInput,
     PasswordChangeInput
 )
+from modules.social.repository import SocialRepository
 from modules.tags.schemas import TagOut, TagInput
 from typing import List
 
@@ -22,8 +24,7 @@ users_router = APIRouter(prefix="/users", tags=["users"])
 def get_users_service(
         db: asyncpg.Connection = Depends(get_db_connection)
 ) -> UsersService:
-    repository = UsersRepository(db)
-    return UsersService(repository)
+    return UsersService(UsersRepository(db), SocialRepository(db))
 
 @users_router.get(
     "/me", response_model=UserProfile
@@ -158,3 +159,14 @@ async def change_password(
 ) -> dict[str, str]:
     await service.change_password(payload, current_user_id)
     return {"message": "Password changed successfully."}
+
+@users_router.get(
+    "/{user_id}",
+    response_model=PublicProfile,
+)
+async def get_public_profile(
+    user_id: int,
+    current_user_id: int = Depends(get_current_user_id_and_touch),
+    service: UsersService = Depends(get_users_service),
+) -> PublicProfile:
+    return await service.get_public_profile(current_user_id, user_id)
