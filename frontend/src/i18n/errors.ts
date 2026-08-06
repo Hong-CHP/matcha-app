@@ -12,7 +12,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   USER_NOT_FOUND: 'We could not find your account, please log in again.',
   TAG_CONTENT_PROFANITY: 'Your tag contains profanity content.',
   FILE_TOO_LARGE: 'File size allows maximum 5MB.',
-  MAX_FIVE_PHOTOS: 'You can upload maximun 5 photos.'
+  MAX_FIVE_PHOTOS: 'You can upload maximun 5 photos.',
+  LOCATION_REQUIRED: 'Your location is required for this discovery query',
+  INVALID_FILTER: 'The filters setting is invalid.',
 }
 
 const REGISTER_FIELDS = ['email', 'username', 'first_name', 'last_name', 'password'] as const

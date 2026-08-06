@@ -1,0 +1,48 @@
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import type { SuggestProfile } from "@/types/discovery"
+import likes from "@/assets/likes.png"
+import unlike from "@/assets/unlike.png"
+import { useNavigate } from "react-router-dom"
+import type { LikeStateResponse } from "@/types/social"
+
+type ProfileCardProps = {
+    profile: SuggestProfile
+    onLike: (targetId: number) => void
+    onUnlike: (targetId: number) => void
+    likeState: Record<number, LikeStateResponse> | null
+}
+
+export function ProfileCard({profile, onLike, onUnlike, likeState}: ProfileCardProps) {
+    const navigate = useNavigate()
+
+    return (
+      <div className="relative w-[350px] max-w-sm w-full rounded-3xl overflow-hidden cursor-pointer"
+        onClick={()=>navigate("")}>
+          <div className="relative h-[380px]">
+              <img
+                  src="https://avatar.vercel.sh/shadcn1"
+                  className="z-0 h-full w-full object-cover"/>
+          </div>
+          <div className="absolute left-0 bottom-0 p-5 text-white">
+              <Button variant="outline" size="icon"
+                onClick={e=>{
+                    e.stopPropagation()
+                    if (!likeState?.[profile.id]?.liked)
+                        onLike(profile.id)
+                    else
+                        onUnlike(profile.id)
+                }}>
+                {likeState?.[profile.id]?.liked && <img src={likes} alt="like" className="w-4 h-4 object-cover rounded cursor-pointer"/>}
+                {!likeState?.[profile.id]?.liked && <img src={unlike} alt="unlike" className="w-4 h-4 object-cover rounded cursor-pointer"/>}
+              </Button>
+              <div className="flex gap-1 flex-wrap">
+                  <h2 className="text-2xl font-bold">{profile.first_name}</h2>
+                  <Badge variant="secondary">fame</Badge>
+              </div>
+              <p className="text-xs">{profile.age} years old</p>
+              <p>{profile.location_label}</p>
+          </div>
+      </div>
+    )
+}
