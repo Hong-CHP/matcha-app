@@ -1,13 +1,13 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import type { SuggestProfile } from "@/types/discovery"
+import type { DiscoveryProfile } from "@/types/discovery"
 import likes from "@/assets/likes.png"
 import unlike from "@/assets/unlike.png"
 import { useNavigate } from "react-router-dom"
 import type { LikeStateResponse } from "@/types/social"
 
 type ProfileCardProps = {
-    profile: SuggestProfile
+    profile: DiscoveryProfile
     onLike: (targetId: number) => void
     onUnlike: (targetId: number) => void
     likeState: Record<number, LikeStateResponse> | null
@@ -18,7 +18,7 @@ export function ProfileCard({profile, onLike, onUnlike, likeState}: ProfileCardP
 
     return (
       <div className="relative w-[350px] max-w-sm w-full rounded-3xl overflow-hidden cursor-pointer"
-        onClick={()=>navigate("")}>
+        onClick={()=>navigate(`/users/${profile.id}`)}>
           <div className="relative h-[380px]">
               <img
                   src="https://avatar.vercel.sh/shadcn1"
