@@ -1,4 +1,4 @@
-export type SuggestProfile = {
+export type DiscoveryProfile = {
     id: number
     username: string
     first_name: string

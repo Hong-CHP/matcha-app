@@ -7,4 +7,15 @@ export const suggestQueryParamsSchema = z.object({
     order: z.enum(["asc", "desc"]).optional()
 })
 
+export const searchQueryParamsSchema = suggestQueryParamsSchema.extend({
+    age_min: z.number().int().min(18).optional(),
+    age_max: z.number().int().max(100).optional(),
+    fame_min: z.number().int().min(0).optional(),
+    fame_max: z.number().int().max(100).optional(),
+    max_distance_km: z.number().max(100).optional(),
+    tag_ids: z.array(z.number().int()).default([])
+})
+
+
 export type SuggestQueryParamsValues = z.infer<typeof suggestQueryParamsSchema>
+export type SearchQueryParamsValues = z.infer<typeof searchQueryParamsSchema>
