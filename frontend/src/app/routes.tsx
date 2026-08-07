@@ -16,7 +16,7 @@ import { VerifyEmailPage } from '../pages/auth/VerifyEmailPage'
 import { ProfileCompletePage } from '../pages/profile/ProfileCompletePage'
 import MyProfilePage from '@/pages/profile/MyProfilePage'
 import SuggestPage from '@/pages/discovery/SuggestPage'
-import Likes from '@/pages/social/Likes'
+import Likes from '@/pages/social/LikesReceived'
 import Visitors from '@/pages/social/Visitors'
 import PublicProfilePage from '@/pages/profile/PublicProfilePage'
 

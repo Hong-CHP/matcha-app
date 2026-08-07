@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import AdvancedSearchForm, { type AdvancedFilters } from "@/components/AdvancedSearchForm"
 import useSearchProfiles from "@/discovery/useSearchProfiles"
 
-const limitList = [
+export const limitList = [
     { label: "Limit", value: null },
     { label: "1", value: "1" },
     { label: "10", value: "10" },

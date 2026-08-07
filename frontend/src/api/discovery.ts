@@ -3,7 +3,7 @@ import { apiGet } from "./client";
 import { _ZodString } from "zod";
 import type { SearchQueryParamsValues, SuggestQueryParamsValues } from "@/schemas/discovery";
 
-function toQueryString(params: Record<string, unknown>): string | null {
+export function toQueryString(params: Record<string, unknown>): string | null {
     const search = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
         if (value === undefined || value === null) return

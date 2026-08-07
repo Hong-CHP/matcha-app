@@ -1,8 +1,11 @@
 import { z } from 'zod'
 
-export const suggestQueryParamsSchema = z.object({
+export const basicQueryParamsSchema = z.object({
     limit: z.number().int().min(1).max(100).default(20),
     offset: z.number().int().min(0).default(0),
+})
+
+export const suggestQueryParamsSchema = basicQueryParamsSchema.extend({
     sort: z.enum(["age", "distance", "fame", "tags"]).optional(),
     order: z.enum(["asc", "desc"]).optional()
 })
@@ -17,5 +20,6 @@ export const searchQueryParamsSchema = suggestQueryParamsSchema.extend({
 })
 
 
+export type BasicQueryParamsValues = z.infer<typeof basicQueryParamsSchema>
 export type SuggestQueryParamsValues = z.infer<typeof suggestQueryParamsSchema>
 export type SearchQueryParamsValues = z.infer<typeof searchQueryParamsSchema>
