@@ -16,7 +16,6 @@ import { VerifyEmailPage } from '../pages/auth/VerifyEmailPage'
 import { ProfileCompletePage } from '../pages/profile/ProfileCompletePage'
 import MyProfilePage from '@/pages/profile/MyProfilePage'
 import SuggestPage from '@/pages/discovery/SuggestPage'
-import SearchResultPage from '@/pages/search/SearchResultPage'
 import Likes from '@/pages/social/Likes'
 import Visitors from '@/pages/social/Visitors'
 import PublicProfilePage from '@/pages/profile/PublicProfilePage'
@@ -33,7 +32,6 @@ export function AppRoutes() {
             <Route path="/" element={<HomePage />} />
             <Route path="/profile" element={<MyProfilePage />} />
             <Route path="/suggest" element={<SuggestPage />} />
-            <Route path="/search" element={<SearchResultPage />} />
             <Route path="/likes" element={<Likes />} />
             <Route path="/visitors" element={<Visitors />} />
             <Route path="/users/:userId" element={<PublicProfilePage />} />
