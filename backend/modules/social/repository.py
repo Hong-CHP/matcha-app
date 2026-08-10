@@ -158,7 +158,7 @@ class SocialRepository:
             FROM likes l
             JOIN users u ON u.id = l.from_user_id
             WHERE l.to_user_id = $1 AND l.status = 'active'
-            ORDER BY l.updated_at DESC
+            ORDER BY l.updated_at DESC, l.id DESC
             LIMIT $2 OFFSET $3
             """,
             user_id, limit, offset,

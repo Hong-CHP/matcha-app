@@ -21,5 +21,5 @@ export async function getLikesReceivedList(
     token: string,
     params: BasicQueryParamsValues
 ): Promise<LikeReceivedOut[]> {
-    return apiGet<LikeReceivedOut[]>(`/social/likes/received/${toQueryString(params)}`, {token})
+    return apiGet<LikeReceivedOut[]>(`/social/likes/received${toQueryString(params)}`, {token})
 }

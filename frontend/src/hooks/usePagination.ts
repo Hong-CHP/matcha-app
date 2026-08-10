@@ -19,13 +19,17 @@ export function usePagination<TFilters extends {limit: number}, TData>({
     const [ hasMore, setHasMore ] = useState(true)
     const [ serverError, setServerError ] = useState<string | null>(null)
     const [ data, setData ] = useState<TData[]>([])
+    
     const offsetRef = useRef(0)
+    const isFetchingRef = useRef(false)
 
     const getPage = useCallback(
         async (offset: number, replace: boolean)=>{
             if (!accessToken || !enabled) return
+            if (isFetchingRef.current) return
             setServerError(null)
             setIsLoading(true)
+            isFetchingRef.current = true
             try {  
                 const page = await fetchPage(accessToken, {...filters, offset})
                 setData(prev=>replace ? page : [...prev, ...page])
@@ -39,6 +43,7 @@ export function usePagination<TFilters extends {limit: number}, TData>({
                 }
             } finally {
                 setIsLoading(false)
+                isFetchingRef.current = false
             }
     }, [accessToken, logout, filters, enabled, fetchPage])
 
