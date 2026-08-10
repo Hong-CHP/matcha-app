@@ -1,28 +1,32 @@
-import { useCallback, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { limitList } from "../discovery/SuggestPage"
 import { SelectFilter } from "@/components/selectFilter"
-import type { LikeReceivedOut } from "@/types/social"
-import { useAuth } from "@/auth/useAuth"
-import * as socialApi from "@/api/social"
+import useLikesReceived from "@/social/useLikesReceived"
 
 function LikesReceived() {
-    const { accessToken, logout } = useAuth()
-    const [ serverError, setServerError ] = useState<string | null>(null)
-    const [ isLoading, setIsLoading ] = useState(false)
     const [limit, setLimit] = useState("20")
-    const [likesReceivedList, setLikesReceivedList] = useState<LikeReceivedOut[]>([])
-    const [ hasMore, setHasMore ] = useState(true)
-    const offsetRef = useRef(0)
+    const sentinelRef = useRef<HTMLDivElement>(null)
 
-    const getLikesReceivedList = useCallback(
-        async () => {
-            if (!accessToken) return
-            setServerError(null)
-            setIsLoading(true)
-            try {
-                const receivedList = await socialApi.getLikesReceivedList(accessToken, )
+    const filters = useMemo(()=>({
+        limit: Number(limit)
+    }), [limit])
+    const {likesReceivedList, serverError, isLoading, hasMore, loadMore} = useLikesReceived(filters, true)
+
+    useEffect(()=>{
+        const el = sentinelRef.current
+        if (!el) return
+        const observer = new IntersectionObserver(
+            (entires) => {
+                if (entires[0].isIntersecting)
+                    loadMore()
+            }, {
+                rootMargin: "200px"
             }
-    }, [])
+        )
+        observer.observe(el)
+        return ()=>observer.disconnect()
+    }, [loadMore])
+
     return (
         <>
             <div className="flex flex-wrap gap-2">
@@ -32,6 +36,20 @@ function LikesReceived() {
                     value={limit}
                     onChange={v=>setLimit(v ?? "20")}/> 
             </div>
+            {serverError && <p className="p-1">{serverError}</p>}
+            <div className="m-8 grid gap-8 justify-items-center
+                grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
+                <ul>
+                {likesReceivedList.map((p) => (
+                    <li key={p.id}>
+                        <div></div>
+                    </li>
+                ))}
+                </ul>
+            </div>
+            <div ref={sentinelRef} />
+            {isLoading && <p className="p-1">Loading...</p>}
+            {!hasMore && !isLoading && <p className="p-1">No more profiles.</p>}
         </>
     )
 }
