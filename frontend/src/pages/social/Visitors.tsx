@@ -2,7 +2,7 @@ import { SelectFilter } from "@/components/selectFilter"
 import useVisitors from "@/social/useVisitors"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { limitList } from "../discovery/SuggestPage"
-import { Separator } from "@base-ui/react"
+import { Separator } from "@/components/ui/separator"
 
 function Visitors() {
     const [limit, setLimit] = useState("20")

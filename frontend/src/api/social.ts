@@ -28,5 +28,5 @@ export async function getVisitorsList(
     token: string,
     params: BasicQueryParamsValues
 ): Promise<VisitorOut[]> {
-    return apiGet<VisitorOut[]>(`/social/visitor${toQueryString(params)}`, {token})
+    return apiGet<VisitorOut[]>(`/social/visitors${toQueryString(params)}`, {token})
 }
