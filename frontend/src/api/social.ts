@@ -1,4 +1,4 @@
-import type { LikeReceivedOut, LikeStateResponse } from "@/types/social";
+import type { LikeReceivedOut, LikeStateResponse, VisitorOut } from "@/types/social";
 import { apiDelete, apiGet, apiPost } from "./client";
 import { toQueryString } from "./discovery";
 import type { BasicQueryParamsValues } from "@/schemas/discovery";
@@ -22,4 +22,11 @@ export async function getLikesReceivedList(
     params: BasicQueryParamsValues
 ): Promise<LikeReceivedOut[]> {
     return apiGet<LikeReceivedOut[]>(`/social/likes/received${toQueryString(params)}`, {token})
+}
+
+export async function getVisitorsList(
+    token: string,
+    params: BasicQueryParamsValues
+): Promise<VisitorOut[]> {
+    return apiGet<VisitorOut[]>(`/social/visitor${toQueryString(params)}`, {token})
 }

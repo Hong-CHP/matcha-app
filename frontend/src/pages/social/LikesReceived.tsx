@@ -69,7 +69,7 @@ function LikesReceived() {
             </div>
             <div ref={sentinelRef} />
             {isLoading && <p className="p-1">Loading...</p>}
-            {!hasMore && !isLoading && <p className="p-1">No more profiles.</p>}
+            {!hasMore && !isLoading && <p className="p-1">No more likes.</p>}
         </>
     )
 }
