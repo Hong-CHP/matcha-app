@@ -32,3 +32,20 @@ export type Photo = {
     url: string
     is_profile_photo: boolean
 }
+
+export type PublicProfile = {
+    id: number
+    username: string
+    first_name: string
+    last_name: string
+    gender: string | null
+    sexual_preference: string | null
+    age: number | null
+    bio: string | null
+    fame_rating: number
+    location_label: string | null
+    last_connection: string
+    is_online: boolean
+    tags: Tag[]
+    photos: Photo[]
+}
