@@ -66,6 +66,8 @@ function SuggestPage() {
     const search = useSearchProfiles(advanced, advancedSearch)
     const {suggestedProfiles, serverError, isLoading, hasMore, loadMore} = advancedSearch ? search : suggest
 
+    const loadMoreRef = useRef(loadMore)
+
     const {like, unlike, likeState, serverError: likeError} = useLikes()
 
     useEffect(()=>{
@@ -74,13 +76,13 @@ function SuggestPage() {
         const observer = new IntersectionObserver(
             (entires) => {
                 if (entires[0].isIntersecting)
-                    loadMore()
+                    loadMoreRef.current()
             },
             { rootMargin: "200px" }
         )
         observer.observe(el)
         return ()=>observer.disconnect()
-    }, [loadMore])
+    }, [])
 
     const handleAdvancedSearch = ()=> {
         setAdvancedSearch(prev=>!prev)
