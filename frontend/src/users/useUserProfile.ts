@@ -9,7 +9,7 @@ import { resolveErrorMessage } from "@/i18n/errors";
 function useUserProfile() {
     const { accessToken, logout } = useAuth()
     const [profile, setProfile] = useState<UserProfile | null>(null)
-    const [isLoading, setIsLoading] = useState<boolean>(true)
+    const [isLoading, setIsLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
 
     const fetchProfile = useCallback(async ()=> {
