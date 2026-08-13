@@ -3,10 +3,12 @@ import { limitList } from "../discovery/SuggestPage"
 import { SelectFilter } from "@/components/selectFilter"
 import useLikesReceived from "@/social/useLikesReceived"
 import { Separator } from "@/components/ui/separator"
+import { useNavigate } from "react-router-dom"
 
 function LikesReceived() {
     const [limit, setLimit] = useState("20")
     const sentinelRef = useRef<HTMLDivElement>(null)
+    const navigate = useNavigate()
 
     const filters = useMemo(()=>({
         limit: Number(limit)
@@ -57,7 +59,10 @@ function LikesReceived() {
                     }) : ''                
                     return (                   
                         <div key={like.id}>
-                            <dl className="flex flex-wrap gap-2 items-center justify-between">
+                            <dl
+                                className="flex flex-wrap gap-2 items-center justify-between"
+                                onClick={()=>navigate(`/users/${like.id}`)}
+                            >
                                 <dt>{like.first_name} {like.last_name}</dt>
                                 <dd className="text-muted-foreground">liked at {formattedDate}</dd>
                             </dl>

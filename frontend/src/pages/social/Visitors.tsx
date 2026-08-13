@@ -3,10 +3,12 @@ import useVisitors from "@/social/useVisitors"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { limitList } from "../discovery/SuggestPage"
 import { Separator } from "@/components/ui/separator"
+import { useNavigate } from "react-router-dom"
 
 function Visitors() {
     const [limit, setLimit] = useState("20")
     const sentinelRef = useRef<HTMLDivElement>(null)
+    const navigate = useNavigate()
     
     const filter = useMemo(()=>({
         limit: Number(limit)
@@ -56,7 +58,10 @@ function Visitors() {
                     }) : ''                
                     return (                   
                         <div key={visitor.id}>
-                            <dl className="flex flex-wrap gap-2 items-center justify-between">
+                            <dl
+                                className="flex flex-wrap gap-2 items-center justify-between"
+                                onClick={()=>navigate(`/users/${visitor.id}`)}
+                            >
                                 <dt>{visitor.first_name} {visitor.last_name}</dt>
                                 <dd className="text-muted-foreground">liked at {formattedDate}</dd>
                             </dl>
