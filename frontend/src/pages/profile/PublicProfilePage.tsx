@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 
 function PublicProfilePage() {
     const { userId } = useParams()
-    const {publicProfile, isLoading, serverError} = usePublicProfile(Number(userId))
+    const {publicProfile, profileAvatar, isLoading, serverError} = usePublicProfile(Number(userId))
     
     return (
         <>
@@ -18,12 +18,11 @@ function PublicProfilePage() {
             {publicProfile && (
                 <div className="max-w-2xl mx-auto">
                     <div>
-                        AVATAR
-                        {/* <Avatar className="w-16 h-16 mx-auto">
-                            <AvatarImage src={avatar ? `${API_BASE_URL}${avatar!}` : undefined} alt={profile?.username} />
+                        <Avatar className="w-16 h-16 mx-auto">
+                            <AvatarImage src={profileAvatar ? `${API_BASE_URL}${profileAvatar!}` : undefined} alt={publicProfile?.username} />
                             <AvatarFallback>CN</AvatarFallback>
                             <AvatarBadge className="bg-green-600 dark:bg-green-800" />
-                        </Avatar> */}
+                        </Avatar>
                     </div>
                     <div className="flex flex-col">
                         <h1 className="m-auto">{publicProfile.first_name} {publicProfile.last_name}</h1>
@@ -43,27 +42,36 @@ function PublicProfilePage() {
                                 <p>Popularity</p>
                             </div>
                         </div>
-                        <div>{publicProfile.gender}, {publicProfile.age} years old </div>
-                        <div>Sexual preference: {publicProfile.sexual_preference}</div>
-                        <div>Bio: {publicProfile.bio}</div>
-                        <div>Location: {publicProfile.location_label}</div>
-                        {!publicProfile.is_online && (<div>Last connection: {publicProfile.last_connection}</div>)}
-                        <div>
-                            <p>Tags:</p>
-                            {publicProfile.tags?.map(tag=>(
-                                <Badge key={tag.id}>{tag.name}</Badge>
-                            ))}
-                        </div>
-                        <div>
-                            <p>Gallery Photos</p>
-                            {publicProfile.photos?.map(p=>(
-                                <div key={p.id} style={{position: "relative"}}>
-                                <img
-                                    src={`${API_BASE_URL}${p.url}`}
-                                    className="w-34 h-34 md:w-54 md:h-54 object-cover rounded cursor-pointer"
-                                    />
+                        <div className="my-4 mx-8 sm:px-8">
+                            <div>{publicProfile.gender}</div>
+                            <div>{publicProfile.age} years old</div>
+                            <div>Preference: {publicProfile.sexual_preference}</div>
+                            <div>Bio: {publicProfile.bio}</div>
+                            <div>Location: {publicProfile.location_label}</div>
+                            {!publicProfile.is_online && (<div>Last connection: {publicProfile.last_connection?? "Never"}</div>)}
+                            <div>
+                                <p>Tags:
+                                {publicProfile.tags?.map(tag=>(
+                                    <Badge
+                                        key={tag.id}
+                                        className="ml-1"
+                                    >{tag.name}</Badge>
+                                ))}
+                                </p>
+                            </div>
+                            <div className="my-4">
+                                <p>Gallery Photos</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                                    {publicProfile.photos?.map(p=>(
+                                        <div key={p.id} className="w-full aspect-square">
+                                        <img
+                                            src={`${API_BASE_URL}${p.url}`}
+                                            className="w-full h-full object-cover rounded cursor-pointer"
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            </div>
                         </div>
                     </div>
                 </div>

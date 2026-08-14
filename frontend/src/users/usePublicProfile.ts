@@ -8,6 +8,7 @@ import { resolveErrorMessage } from "@/i18n/errors";
 export function usePublicProfile(target_id: number) {
     const {accessToken, logout} = useAuth()
     const [publicProfile, setPubilcProfile] = useState<PublicProfile | null>(null)
+    const [profileAvatar, setProfileAvatar] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [serverError, setServerError] = useState<string | null>(null)
 
@@ -19,6 +20,8 @@ export function usePublicProfile(target_id: number) {
             try {
                 const targetProfile = await usersApi.getPublicProfile(accessToken, target_id)
                 setPubilcProfile(targetProfile)
+                const avatar = targetProfile.photos.filter(p=> p.is_profile_photo)?.[0]
+                setProfileAvatar(avatar.url?? null)
             } catch (err) {
                 if (err instanceof ApiError) {
                     setServerError(resolveErrorMessage(err.code, err.message))
@@ -34,5 +37,5 @@ export function usePublicProfile(target_id: number) {
         fetchPublicProfile(target_id)
     }, [fetchPublicProfile])
 
-    return {publicProfile, isLoading, serverError, fetchPublicProfile}
+    return {publicProfile, profileAvatar, isLoading, serverError}
 }
