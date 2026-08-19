@@ -13,6 +13,7 @@ class DiscoveryProfileCard(BaseModel):
     distance_km: Optional[float] = None
     common_tags_count: int = 0
     location_label: Optional[str] = None
+    liked_by_me: bool
 
 
 class SuggestQueryParams(BaseModel):

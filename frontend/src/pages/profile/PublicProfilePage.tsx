@@ -61,7 +61,12 @@ function PublicProfilePage() {
                             </div>
                         </div>
                         <div className="flex gap-1 justify-center">
-                            <Button className="max-inline-32 cursor-pointer">relationship</Button>
+                            <Button className="max-inline-32 cursor-pointer">
+                                {relationship?.connected? "Connected"
+                                    : (relationship?.liked_by_me? "Liked by me"
+                                    : (relationship?.liked_you? "Liked you and feedback like"
+                                    : `Like ${publicProfile.gender === "male" ? "him" : "her"}`))}
+                                </Button>
                             <DropdownMenu>
                                 <DropdownMenuTrigger
                                     render={<Button variant="outline" className="cursor-pointer">...</Button>} />

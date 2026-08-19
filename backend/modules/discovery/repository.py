@@ -90,7 +90,12 @@ class DiscoveryRepository:
                   JOIN user_tags ct ON ct.tag_id = vt.tag_id
                   WHERE vt.user_id = $1 AND ct.user_id = u.id
                 ) AS common_tags_count,
-                u.location_label
+                u.location_label,
+                EXISTS (
+                  SELECT 1
+                  FROM likes
+                  WHERE from_user_id = $1 AND to_user_id = u.id AND status = 'active'
+                ) AS liked_by_me
               FROM users u
               WHERE u.id <> $1
                 -- twin of UsersService.get_profile is_completed

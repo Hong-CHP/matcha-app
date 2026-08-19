@@ -9,7 +9,7 @@ export function useLikes() {
     const { accessToken, logout } = useAuth()
     const [ likeState, setLikeState ] = useState< Record<number, LikeStateResponse> | null>(null)
     const [ serverError, setServerError ] = useState<string | null>(null)
-    
+
     const like = async (targetId: number) => {
         if (!accessToken) return
         try {
