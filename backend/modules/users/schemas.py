@@ -23,6 +23,8 @@ class UserProfile(BaseModel):
     location_label: Optional[str] = None
     location_consent: bool = False
     last_connection: Optional[datetime] = None
+    likes_received_count: int = 0
+    visitors_count: int = 0
 
 class UserProfileInput(BaseModel):
     gender: Literal["male", "female", "other"]
@@ -94,3 +96,5 @@ class PublicProfile(BaseModel):
     is_online: bool = False
     tags: List[TagOut] = Field(default_factory=list)
     photos: List[PhotoOut] = Field(default_factory=list)
+    likes_received_count: int = 0
+    visitors_count: int = 0

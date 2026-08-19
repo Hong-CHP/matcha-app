@@ -240,3 +240,27 @@ class SocialRepository:
             target_id,
             reason,
         )
+
+    async def count_likes_received(
+            self, target_user_id: int
+    ) -> int:
+        return await self.connection.fetchval(
+            """
+            SELECT COUNT(*)
+            FROM likes
+            WHERE to_user_id = $1 AND status = 'active'
+            """,
+            target_user_id
+        )
+
+    async def count_visitors(
+            self, target_user_id: int
+    ) -> int:
+        return await self.connection.fetchval(
+            """
+            SELECT COUNT(*)
+            FROM visits
+            WHERE target_id = $1
+            """,
+            target_user_id
+        )

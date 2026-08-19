@@ -8,6 +8,7 @@ from core.config import settings
 from modules.auth.schemas import CurrentUserResponse, LoginInput, UserRecord, UserRegisterInput
 from modules.auth.repository import AuthRepository
 from modules.users.repository import UsersRepository
+from modules.social.repository import SocialRepository
 from modules.users.service import UsersService
 
 from modules.auth.exceptions import (
@@ -154,7 +155,8 @@ class AuthService:
         if not user:
             raise InvalidTokenException()
         profile = await UsersService(
-            UsersRepository(self.repository.connection)
+            UsersRepository(self.repository.connection),
+            SocialRepository(self.repository.connection),
         ).get_profile(user_id)
 
         return CurrentUserResponse(

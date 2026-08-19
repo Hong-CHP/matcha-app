@@ -75,11 +75,11 @@ function MyProfilePage() {
                 <h1 className="m-auto">{profile.username}</h1>
                 <div className="flex flex-row justify-center gap-3">
                     <div className="flex flex-row items-center gap-1">
-                        <p>10</p>
+                        <p>{profile.likes_received_count ?? 0}</p>
                         <img src={likes} alt="likes" className="w-5 h-5 object-cover rounded cursor-pointer"/>
                     </div>
                     <div className="flex flex-row items-center gap-1">
-                        <p>10</p>
+                        <p>{profile.visitors_count ?? 0}</p>
                         <img src={vues} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
                     </div>
                 </div>

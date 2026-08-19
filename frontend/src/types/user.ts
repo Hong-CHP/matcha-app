@@ -16,6 +16,8 @@ export type UserProfile = {
     location_label: string | null
     location_consent: boolean
     last_connection: string
+    likes_received_count: number
+    visitors_count: number
 }
 
 export type Tag = {
@@ -48,4 +50,6 @@ export type PublicProfile = {
     is_online: boolean
     tags: Tag[]
     photos: Photo[]
+    likes_received_count: number
+    visitors_count: number
 }

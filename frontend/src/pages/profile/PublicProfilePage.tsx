@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 function PublicProfilePage() {
     const { userId } = useParams()
     const {publicProfile, profileAvatar, isLoading, serverError} = usePublicProfile(Number(userId))
-    
+
     return (
         <>
             {isLoading && <p>Loading...</p>}
@@ -28,11 +28,11 @@ function PublicProfilePage() {
                         <h1 className="m-auto">{publicProfile.first_name} {publicProfile.last_name}</h1>
                         <div className="flex flex-row justify-center gap-3">
                             <div className="flex flex-row items-center gap-1">
-                                <p>10</p>
+                                <p>{publicProfile.likes_received_count ?? 0}</p>
                                 <img src={likes} alt="likes" className="w-5 h-5 object-cover rounded cursor-pointer"/>
                             </div>
                             <div className="flex flex-row items-center gap-1">
-                                <p>10</p>
+                                <p>{publicProfile.visitors_count ?? 0}</p>
                                 <img src={vues} alt="vues" className="w-5 h-5 object-cover rounded cursor-pointer"/>
                             </div>
                         </div>

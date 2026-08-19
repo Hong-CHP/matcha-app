@@ -45,9 +45,11 @@ class UsersService:
         current_user = await self.repository.get_user_by_id(current_user_id)
         if not current_user:
             raise UserNotFoundException()
-        
+
         tags = await self.repository.get_my_tags(current_user_id)
         photos = await self.repository.get_my_photos(current_user_id)
+        likes_received_count = await self.social_repo.count_likes_received(current_user_id)
+        visitors_count = await self.social_repo.count_visitors(current_user_id)
 
         is_completed = (
             current_user.bio is not None
@@ -58,7 +60,11 @@ class UsersService:
             and len(photos) > 0
         )
         
-        return current_user.model_copy(update={"is_profile_completed": is_completed})
+        return current_user.model_copy(update={
+            "is_profile_completed": is_completed,
+            "likes_received_count": likes_received_count,
+            "visitors_count": visitors_count,
+            })
 
     async def get_public_profile(
             self,
@@ -71,8 +77,12 @@ class UsersService:
         target = await self.repository.get_user_by_id(target_id)
         if not target:
             raise UserNotFoundException()
+
         tags = await self.repository.get_my_tags(target_id)
         photos = await self.repository.get_my_photos(target_id)
+        likes_received_count = await self.social_repo.count_likes_received(target_id)
+        visitors_count = await self.social_repo.count_visitors(target_id)
+
         return PublicProfile(
             id=target.id,
             username=target.username,
@@ -88,6 +98,8 @@ class UsersService:
             is_online=self._is_online(target.last_connection),
             tags=tags or [],
             photos=photos or [],
+            likes_received_count=likes_received_count,
+            visitors_count=visitors_count,
         )
 
     @staticmethod
