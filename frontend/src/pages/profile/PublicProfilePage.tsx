@@ -24,10 +24,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useLikes } from "@/social/useLikes"
 
 function PublicProfilePage() {
     const { userId } = useParams()
-    const {relationship, publicProfile, profileAvatar, isLoading, serverError} = usePublicProfile(Number(userId))
+    const {relationship, publicProfile, fetchPublicProfile, profileAvatar, isLoading, serverError} = usePublicProfile(Number(userId))
+    const {like, unlike, serverError: likeError} = useLikes()
+
+    const handleLike = async (targetId: number) => {
+        if (relationship?.liked_by_me || relationship?.connected)
+            await unlike(targetId)
+        else
+            await like(targetId)
+        await fetchPublicProfile(targetId)
+    }
 
     return (
         <>
@@ -61,7 +71,11 @@ function PublicProfilePage() {
                             </div>
                         </div>
                         <div className="flex gap-1 justify-center">
-                            <Button className="max-inline-32 cursor-pointer">
+                            <Button
+                                variant="outline"
+                                className="max-inline-32 cursor-pointer"
+                                onClick={()=>handleLike(publicProfile.id)}
+                            >
                                 {relationship?.connected? "Connected"
                                     : (relationship?.liked_by_me? "Liked by me"
                                     : (relationship?.liked_you? "Liked you and feedback like"
@@ -100,6 +114,7 @@ function PublicProfilePage() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
+                        {likeError && <p className="p-1">{likeError}</p>}
                         <div className="my-4 mx-8 sm:px-8">
                             <div>{publicProfile.gender}</div>
                             <div>{publicProfile.age} years old</div>

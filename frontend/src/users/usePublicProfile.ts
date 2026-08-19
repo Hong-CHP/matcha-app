@@ -42,5 +42,5 @@ export function usePublicProfile(target_id: number) {
         fetchPublicProfile(target_id)
     }, [fetchPublicProfile])
 
-    return {relationship, publicProfile, profileAvatar, isLoading, serverError}
+    return {relationship, publicProfile, fetchPublicProfile, profileAvatar, isLoading, serverError}
 }
