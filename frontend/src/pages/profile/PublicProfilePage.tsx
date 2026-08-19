@@ -39,6 +39,8 @@ function PublicProfilePage() {
         await fetchPublicProfile(targetId)
     }
 
+    const handleBlock = async (targetId: number) => {}
+
     return (
         <>
             {isLoading && <p>Loading...</p>}
@@ -75,12 +77,22 @@ function PublicProfilePage() {
                                 variant="outline"
                                 className="max-inline-32 cursor-pointer"
                                 onClick={()=>handleLike(publicProfile.id)}
+                                disabled={relationship?.blocked_by_me || relationship?.blocked_you}
                             >
                                 {relationship?.connected? "Connected"
                                     : (relationship?.liked_by_me? "Liked by me"
                                     : (relationship?.liked_you? "Liked you and feedback like"
                                     : `Like ${publicProfile.gender === "male" ? "him" : "her"}`))}
-                                </Button>
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="max-inline-32 cursor-pointer"
+                                onClick={()=>handleBlock(publicProfile.id)}
+                            >
+                                {relationship?.blocked_by_me? "Blocked"
+                                    : (relationship?.blocked_you? "Blocked you"
+                                    : `Block ${publicProfile.gender === "male" ? "him" : "her"}`)}
+                            </Button>
                             <DropdownMenu>
                                 <DropdownMenuTrigger
                                     render={<Button variant="outline" className="cursor-pointer">...</Button>} />
@@ -105,7 +117,7 @@ function PublicProfilePage() {
                                                 </FieldGroup>
                                                 <DialogFooter>
                                                   <DialogClose render={<Button variant="outline">Cancel</Button>} />
-                                                  <Button type="submit">Send report</Button>
+                                                  <Button onClick={handleSubmitReport}>Send report</Button>
                                                 </DialogFooter>
                                               </DialogContent>
                                             </form>
@@ -115,37 +127,39 @@ function PublicProfilePage() {
                             </DropdownMenu>
                         </div>
                         {likeError && <p className="p-1">{likeError}</p>}
-                        <div className="my-4 mx-8 sm:px-8">
-                            <div>{publicProfile.gender}</div>
-                            <div>{publicProfile.age} years old</div>
-                            <div>Preference: {publicProfile.sexual_preference}</div>
-                            <div>Bio: {publicProfile.bio}</div>
-                            <div>Location: {publicProfile.location_label}</div>
-                            {!publicProfile.is_online && (<div>Last connection: {publicProfile.last_connection?? "Never"}</div>)}
-                            <div>
-                                <p>Tags:
-                                {publicProfile.tags?.map(tag=>(
-                                    <Badge
-                                        key={tag.id}
-                                        className="ml-1"
-                                    >{tag.name}</Badge>
-                                ))}
-                                </p>
-                            </div>
-                            <div className="my-4">
-                                <p>Gallery Photos</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                                    {publicProfile.photos?.map(p=>(
-                                        <div key={p.id} className="w-full aspect-square">
-                                        <img
-                                            src={`${API_BASE_URL}${p.url}`}
-                                            className="w-full h-full object-cover rounded cursor-pointer"
-                                            />
-                                        </div>
+                        {!relationship?.blocked_by_me && !relationship?.blocked_you && (
+                            <div className="my-4 mx-8 sm:px-8">
+                                <div>{publicProfile.gender}</div>
+                                <div>{publicProfile.age} years old</div>
+                                <div>Preference: {publicProfile.sexual_preference}</div>
+                                <div>Bio: {publicProfile.bio}</div>
+                                <div>Location: {publicProfile.location_label}</div>
+                                {!publicProfile.is_online && (<div>Last connection: {publicProfile.last_connection?? "Never"}</div>)}
+                                <div>
+                                    <p>Tags:
+                                    {publicProfile.tags?.map(tag=>(
+                                        <Badge
+                                            key={tag.id}
+                                            className="ml-1"
+                                        >{tag.name}</Badge>
                                     ))}
+                                    </p>
+                                </div>
+                                <div className="my-4">
+                                    <p>Gallery Photos</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                                        {publicProfile.photos?.map(p=>(
+                                            <div key={p.id} className="w-full aspect-square">
+                                            <img
+                                                src={`${API_BASE_URL}${p.url}`}
+                                                className="w-full h-full object-cover rounded cursor-pointer"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}    
                     </div>
                 </div>
             )}
