@@ -15,6 +15,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   MAX_FIVE_PHOTOS: 'You can upload maximun 5 photos.',
   LOCATION_REQUIRED: 'Your location is required for this discovery query',
   INVALID_FILTER: 'The filters setting is invalid.',
+  BLOCKED: 'profile_unavailable',
 }
 
 const REGISTER_FIELDS = ['email', 'username', 'first_name', 'last_name', 'password'] as const

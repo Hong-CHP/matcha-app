@@ -18,3 +18,13 @@ export type VisitorOut = {
     last_name: string
     visited_at: string
 }
+
+export type RelationshipResponse = {
+    liked_by_me: boolean
+    liked_you: boolean
+    connected: boolean
+    blocked_by_me: boolean
+    blocked_you: boolean
+    last_connection: string
+    is_online: boolean
+}

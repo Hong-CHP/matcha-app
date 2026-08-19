@@ -1,4 +1,4 @@
-import type { LikeReceivedOut, LikeStateResponse, VisitorOut } from "@/types/social";
+import type { LikeReceivedOut, LikeStateResponse, VisitorOut, RelationshipResponse } from "@/types/social";
 import { apiDelete, apiGet, apiPost } from "./client";
 import { toQueryString } from "./discovery";
 import type { BasicQueryParamsValues } from "@/schemas/discovery";
@@ -15,6 +15,13 @@ export async function postUnLike(
     target_user_id: number
 ): Promise<LikeStateResponse> {
     return apiDelete<LikeStateResponse>(`/social/likes/${target_user_id}`, {token})
+}
+
+export async function getRelationship(
+    token: string,
+    target_user_id: number
+): Promise<RelationshipResponse> {
+    return apiGet<RelationshipResponse>(`/social/relationship/${target_user_id}`, {token})
 }
 
 export async function getLikesReceivedList(

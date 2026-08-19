@@ -1,15 +1,33 @@
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { FieldError } from "@/components/ui/field"
+import { FieldError, Field, FieldLabel, FieldGroup } from "@/components/ui/field"
 import { usePublicProfile } from "@/users/usePublicProfile"
 import { useParams } from "react-router-dom"
 import likes from "@/assets/likes.png"
 import vues from "@/assets/vues.png"
 import { API_BASE_URL } from "@/api/client"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 function PublicProfilePage() {
     const { userId } = useParams()
-    const {publicProfile, profileAvatar, isLoading, serverError} = usePublicProfile(Number(userId))
+    const {relationship, publicProfile, profileAvatar, isLoading, serverError} = usePublicProfile(Number(userId))
 
     return (
         <>
@@ -41,6 +59,41 @@ function PublicProfilePage() {
                                 <p>{publicProfile.fame_rating}</p>
                                 <p>Popularity</p>
                             </div>
+                        </div>
+                        <div className="flex gap-1 justify-center">
+                            <Button className="max-inline-32 cursor-pointer">relationship</Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger
+                                    render={<Button variant="outline" className="cursor-pointer">...</Button>} />
+                                <DropdownMenuContent>
+                                  <DropdownMenuGroup>
+                                        <Dialog>
+                                            <form>
+                                              <DialogTrigger render={<button className="text-sm inline-h">Report</button>} />
+                                              <DialogContent className="sm:max-w-sm">
+                                                <DialogHeader>
+                                                  <DialogTitle>Report</DialogTitle>
+                                                  <DialogDescription>
+                                                    Describe your report reason here. Click send report when you&apos;re
+                                                    done.
+                                                  </DialogDescription>
+                                                </DialogHeader>
+                                                <FieldGroup>
+                                                  <Field>
+                                                    <FieldLabel htmlFor="report-reason">Reason</FieldLabel>
+                                                    <Textarea id="report-reason" name="report-reason" placeholder="Type your reasons here." />
+                                                  </Field>
+                                                </FieldGroup>
+                                                <DialogFooter>
+                                                  <DialogClose render={<Button variant="outline">Cancel</Button>} />
+                                                  <Button type="submit">Send report</Button>
+                                                </DialogFooter>
+                                              </DialogContent>
+                                            </form>
+                                        </Dialog>
+                                  </DropdownMenuGroup>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                         <div className="my-4 mx-8 sm:px-8">
                             <div>{publicProfile.gender}</div>
