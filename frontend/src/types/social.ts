@@ -28,3 +28,7 @@ export type RelationshipResponse = {
     last_connection: string
     is_online: boolean
 }
+
+export type BlockStateResponse = {
+    blocked: boolean
+}

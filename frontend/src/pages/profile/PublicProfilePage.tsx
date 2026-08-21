@@ -41,6 +41,8 @@ function PublicProfilePage() {
 
     const handleBlock = async (targetId: number) => {}
 
+    const handleSubmitReport = async (targetId: number) => {}
+
     return (
         <>
             {isLoading && <p>Loading...</p>}
@@ -117,7 +119,7 @@ function PublicProfilePage() {
                                                 </FieldGroup>
                                                 <DialogFooter>
                                                   <DialogClose render={<Button variant="outline">Cancel</Button>} />
-                                                  <Button onClick={handleSubmitReport}>Send report</Button>
+                                                  <Button onClick={()=>handleSubmitReport(publicProfile.id)}>Send report</Button>
                                                 </DialogFooter>
                                               </DialogContent>
                                             </form>

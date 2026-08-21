@@ -1,4 +1,4 @@
-import type { LikeReceivedOut, LikeStateResponse, VisitorOut, RelationshipResponse } from "@/types/social";
+import type { LikeReceivedOut, LikeStateResponse, VisitorOut, RelationshipResponse, BlockStateResponse } from "@/types/social";
 import { apiDelete, apiGet, apiPost } from "./client";
 import { toQueryString } from "./discovery";
 import type { BasicQueryParamsValues } from "@/schemas/discovery";
@@ -36,4 +36,18 @@ export async function getVisitorsList(
     params: BasicQueryParamsValues
 ): Promise<VisitorOut[]> {
     return apiGet<VisitorOut[]>(`/social/visitors${toQueryString(params)}`, {token})
+}
+
+export async function postBlock(
+    token: string,
+    target_user_id: number
+): Promise<BlockStateResponse> {
+    return apiPost<BlockStateResponse>(`/social/blocks/${target_user_id}`, {token})
+}
+
+export async function deleteBlock(
+    token: string,
+    target_user_id: number
+): Promise<BlockStateResponse> {
+    return apiDelete<BlockStateResponse>(`/social/blocks/${target_user_id}`, {token})
 }
