@@ -16,6 +16,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   LOCATION_REQUIRED: 'Your location is required for this discovery query',
   INVALID_FILTER: 'The filters setting is invalid.',
   BLOCKED: 'profile_unavailable',
+  TARGET_USER_NOT_FOUND: 'We could not find target account, please try it later',
 }
 
 const REGISTER_FIELDS = ['email', 'username', 'first_name', 'last_name', 'password'] as const

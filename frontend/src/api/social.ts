@@ -1,7 +1,8 @@
-import type { LikeReceivedOut, LikeStateResponse, VisitorOut, RelationshipResponse, BlockStateResponse } from "@/types/social";
+import type { LikeReceivedOut, LikeStateResponse, VisitorOut, RelationshipResponse, BlockStateResponse, OkResponse } from "@/types/social";
 import { apiDelete, apiGet, apiPost } from "./client";
 import { toQueryString } from "./discovery";
 import type { BasicQueryParamsValues } from "@/schemas/discovery";
+import type { reportInputValue } from "@/schemas/social";
 
 export async function postLike(
     token: string,
@@ -50,4 +51,12 @@ export async function deleteBlock(
     target_user_id: number
 ): Promise<BlockStateResponse> {
     return apiDelete<BlockStateResponse>(`/social/blocks/${target_user_id}`, {token})
+}
+
+export async function postReport(
+    token: string,
+    target_user_id: number,
+    payload: reportInputValue
+): Promise<OkResponse> {
+    return apiPost<OkResponse>(`/social/reports/${target_user_id}`, payload, {token})
 }

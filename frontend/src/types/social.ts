@@ -32,3 +32,7 @@ export type RelationshipResponse = {
 export type BlockStateResponse = {
     blocked: boolean
 }
+
+export type OkResponse = {
+    ok: boolean
+}
