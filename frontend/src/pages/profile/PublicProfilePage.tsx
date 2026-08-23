@@ -25,12 +25,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useLikes } from "@/social/useLikes"
+import { useBlock } from "@/social/useBlock"
 
 function PublicProfilePage() {
     const { userId } = useParams()
     const {relationship, publicProfile, fetchPublicProfile, profileAvatar, isLoading, serverError} = usePublicProfile(Number(userId))
     const {like, unlike, serverError: likeError} = useLikes()
-
+    const {block, unblock, serverError: blockError} = useBlock()
+    
     const handleLike = async (targetId: number) => {
         if (relationship?.liked_by_me || relationship?.connected)
             await unlike(targetId)
@@ -39,7 +41,14 @@ function PublicProfilePage() {
         await fetchPublicProfile(targetId)
     }
 
-    const handleBlock = async (targetId: number) => {}
+    const handleBlock = async (targetId: number) => {
+        if (relationship?.blocked_you) return
+        else if (!relationship?.blocked_by_me && !relationship?.blocked_you)
+            await block(targetId)
+        else if (relationship?.blocked_by_me && !relationship?.blocked_you)
+            await unblock(targetId)
+        await fetchPublicProfile(targetId)
+    }
 
     const handleSubmitReport = async (targetId: number) => {}
 
@@ -128,7 +137,9 @@ function PublicProfilePage() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
-                        {likeError && <p className="p-1">{likeError}</p>}
+                        {!relationship?.blocked_by_me && !relationship?.blocked_you
+                            && likeError && <p className="p-1">{likeError}</p>}
+                        {blockError && <p className="p-1">{blockError}</p>}
                         {!relationship?.blocked_by_me && !relationship?.blocked_you && (
                             <div className="my-4 mx-8 sm:px-8">
                                 <div>{publicProfile.gender}</div>
