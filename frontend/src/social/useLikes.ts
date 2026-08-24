@@ -16,12 +16,14 @@ export function useLikes() {
             const likeState = await socialApi.postLike(accessToken, targetId)
             if (!likeState) return
             setLikeState(prev=>({...prev, [targetId]: likeState}))
+            return true
         } catch (err) {
             if (err instanceof ApiError) {
                 setServerError(resolveErrorMessage(err.code, err.message))
                 if (err.code == "USER_NOT_FOUND")
                     logout()
             }
+            return false
         }
     }
     
@@ -31,12 +33,14 @@ export function useLikes() {
             const likeState = await socialApi.postUnLike(accessToken, targetId)
             if (!likeState) return
             setLikeState(prev=>({...prev, [targetId]: likeState}))
+            return true
         } catch (err) {
             if (err instanceof ApiError) {
                 setServerError(resolveErrorMessage(err.code, err.message))
                 if (err.code == "USER_NOT_FOUND")
                     logout()
             }
+            return false
         }
     }
 

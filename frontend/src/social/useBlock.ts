@@ -16,12 +16,14 @@ export function useBlock() {
         try {
             const blocked = await socialApi.postBlock(accessToken, targetId)
             setBlockState(blocked)
+            return true
         } catch (err) {
             if (err instanceof ApiError) {
                 setServerError(resolveErrorMessage(err.code, err.message))
                 if (err.code == "USER_NOT_FOUND")
                     logout()
             }
+            return false
         }
     }
 
@@ -31,12 +33,14 @@ export function useBlock() {
         try {
             const blocked = await socialApi.deleteBlock(accessToken, targetId)
             setBlockState(blocked)
+            return true
         } catch (err) {
             if (err instanceof ApiError) {
                 setServerError(resolveErrorMessage(err.code, err.message))
                 if (err.code == "USER_NOT_FOUND")
                     logout()
             }
+            return false
         }
     }
 

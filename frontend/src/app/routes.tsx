@@ -35,7 +35,7 @@ export function AppRoutes() {
             <Route path="/suggest" element={<SuggestPage />} />
             <Route path="/likes" element={<Likes />} />
             <Route path="/visitors" element={<Visitors />} />
-            <Route path="/blocks'" element={<BlockListPage />} />
+            <Route path="/blocks" element={<BlockListPage />} />
             <Route path="/users/:userId" element={<PublicProfilePage />} />
           </Route>
         </Route>
