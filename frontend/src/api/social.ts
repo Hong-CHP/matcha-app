@@ -60,3 +60,10 @@ export async function postReport(
 ): Promise<OkResponse> {
     return apiPost<OkResponse>(`/social/reports/${target_user_id}`, payload, {token})
 }
+
+export async function postVisit(
+   token: string,
+    target_user_id: number
+): Promise<OkResponse> {
+    return apiPost<OkResponse>(`/social/visits/${target_user_id}`, {token})
+}
