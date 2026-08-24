@@ -23,6 +23,7 @@ export function ProfileCard({profile, onLike, onUnlike, likeState}: ProfileCardP
           <div className="relative h-[380px]">
               <img
                   src="https://avatar.vercel.sh/shadcn1"
+                  alt={`${profile.first_name}'s profile`}
                   className="z-0 h-full w-full object-cover"/>
           </div>
           <div className="absolute left-0 bottom-0 p-5 text-white">
