@@ -23,12 +23,14 @@ import { API_BASE_URL, ApiError } from "@/api/client"
 import { resolveErrorMessage } from "@/i18n/errors"
 import { FieldError } from "@/components/ui/field"
 import { Button } from "@/components/ui/button"
+import { useNavigate } from "react-router-dom"
 
 function MyProfilePage() {
     const { accessToken, logout } = useAuth()
     const { profile, error, fetchProfile } = useUserProfile()
     const [ avatar, setAvatar ] = useState<string | null>(null)
     const [serverError, setServerError] = useState<string | null>(null)
+    const navigate = useNavigate()
 
     useEffect(()=>{
         if (!accessToken)
@@ -72,7 +74,7 @@ function MyProfilePage() {
                     <AvatarBadge className="bg-green-600 dark:bg-green-800" />
                 </Avatar>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col">
                 <h1 className="m-auto">{profile.username}</h1>
                 <div className="flex flex-row justify-center gap-3">
                     <div className="flex flex-row items-center gap-1">
@@ -90,8 +92,8 @@ function MyProfilePage() {
                         <p>Popularity</p>
                     </div>
                 </div>
-                <div className="m-auto">
-                    <Button variant="outline">See block list</Button>
+                <div className="m-auto mt-1">
+                    <Button variant="outline" onClick={()=>navigate('/blocks')}>See block list</Button>
                 </div>
             </div>
             <ProfileTabs profile={profile!} onSaved={fetchProfile}/>

@@ -1,8 +1,9 @@
-import type { LikeReceivedOut, LikeStateResponse, VisitorOut, RelationshipResponse, BlockStateResponse, OkResponse } from "@/types/social";
+import type { LikeReceivedOut, LikeStateResponse, VisitorOut, RelationshipResponse, BlockStateResponse, OkResponse, BlockedUserOut } from "@/types/social";
 import { apiDelete, apiGet, apiPost } from "./client";
 import { toQueryString } from "./discovery";
 import type { BasicQueryParamsValues } from "@/schemas/discovery";
 import type { reportInputValue } from "@/schemas/social";
+import { string } from "zod";
 
 export async function postLike(
     token: string,
@@ -37,6 +38,13 @@ export async function getVisitorsList(
     params: BasicQueryParamsValues
 ): Promise<VisitorOut[]> {
     return apiGet<VisitorOut[]>(`/social/visitors${toQueryString(params)}`, {token})
+}
+
+export async function getBlockList(
+    token: string,
+    params: BasicQueryParamsValues
+): Promise<BlockedUserOut[]> {
+    return apiGet<BlockedUserOut[]>(`/social/blocks${toQueryString(params)}`, {token})
 }
 
 export async function postBlock(

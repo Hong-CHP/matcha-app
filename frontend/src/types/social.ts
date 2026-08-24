@@ -19,6 +19,15 @@ export type VisitorOut = {
     visited_at: string
 }
 
+export type BlockedUserOut = {
+    id: number
+    username: string
+    first_name: string
+    last_name: string
+    visited_at: string
+    blocked_at: string
+}
+
 export type RelationshipResponse = {
     liked_by_me: boolean
     liked_you: boolean
