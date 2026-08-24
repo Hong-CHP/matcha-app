@@ -22,6 +22,7 @@ import { useAuth } from "@/auth/useAuth"
 import { API_BASE_URL, ApiError } from "@/api/client"
 import { resolveErrorMessage } from "@/i18n/errors"
 import { FieldError } from "@/components/ui/field"
+import { Button } from "@/components/ui/button"
 
 function MyProfilePage() {
     const { accessToken, logout } = useAuth()
@@ -71,7 +72,7 @@ function MyProfilePage() {
                     <AvatarBadge className="bg-green-600 dark:bg-green-800" />
                 </Avatar>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-2">
                 <h1 className="m-auto">{profile.username}</h1>
                 <div className="flex flex-row justify-center gap-3">
                     <div className="flex flex-row items-center gap-1">
@@ -88,6 +89,9 @@ function MyProfilePage() {
                         <p>10</p>
                         <p>Popularity</p>
                     </div>
+                </div>
+                <div className="m-auto">
+                    <Button variant="outline">See block list</Button>
                 </div>
             </div>
             <ProfileTabs profile={profile!} onSaved={fetchProfile}/>
