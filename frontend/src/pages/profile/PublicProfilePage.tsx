@@ -106,7 +106,7 @@ function PublicProfilePage() {
     return (
         <>
             {isLoading && <p>Loading...</p>}
-            {serverError && <FieldError>{serverError}</FieldError>}
+            {relationship?.blocked_you && serverError && <FieldError className="p-1 m-auto">{serverError}</FieldError>}
             {publicProfile && (
                 <div className="max-w-2xl mx-auto">
                     <div>
@@ -151,7 +151,7 @@ function PublicProfilePage() {
                                 className="max-inline-32 cursor-pointer"
                                 onClick={()=>handleBlock(publicProfile.id)}
                             >
-                                {relationship?.blocked_by_me? "Blocked"
+                                {relationship?.blocked_by_me? "Unblock"
                                     : (relationship?.blocked_you? "Blocked you"
                                     : `Block ${publicProfile.gender === "male" ? "him" : "her"}`)}
                             </Button>
@@ -194,10 +194,11 @@ function PublicProfilePage() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
+                        {!relationship?.blocked_you && serverError && <FieldError className="p-1 m-auto">{serverError}</FieldError>}
                         {!relationship?.blocked_by_me && !relationship?.blocked_you
-                            && likeError && <p className="p-1">{likeError}</p>}
-                        {blockError && <p className="p-1">{blockError}</p>}
-                        {reportError && <p className="p-1">{reportError}</p>}
+                            && likeError && <p className="p-1 m-auto">{likeError}</p>}
+                        {blockError && <p className="p-1 m-auto">{blockError}</p>}
+                        {reportError && <p className="p-1 m-auto">{reportError}</p>}
                         {!relationship?.blocked_by_me && !relationship?.blocked_you && (
                             <div className="my-4 mx-8 sm:px-8">
                                 <div>{publicProfile.gender}</div>

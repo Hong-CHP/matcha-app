@@ -19,6 +19,7 @@ export function usePublicProfile(target_id: number) {
     const fetchPublicProfile = useCallback(
         async (target_id: number)=>{
             if (!accessToken) return
+            setServerError(null)
             setIsLoading(true)
             try {
                 const relation = await socialApi.getRelationship(accessToken, target_id)
