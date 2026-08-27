@@ -71,6 +71,15 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
     return ()=>document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  const handleLinkPublicProfile = (id: number) => {
+    setServerError(null)
+    setIsLoading(false)
+    setInputValue("")
+    setSeachingBarProfileList([])
+    setIsOpen(false)
+    navigate(`/users/${id}`)
+  }
+
   return (
     <form {...props} onSubmit={(e) => e.preventDefault()}>
       <SidebarGroup className="py-0" ref={containerRef}>
@@ -86,12 +95,12 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
             onChange={e=>setInputValue(e.target.value)}
           />
           {isOpen && seachingBarProfileList.length > 0 && (
-            <ScrollArea className="h-72 w-48 rounded-md border">
+            <ScrollArea className="h-72 rounded-md border fixed top-26 left-0 z-99 bg-white">
               <div className="p-4">
                 <h4 className="mb-4 text-sm leading-none font-medium">Search results</h4>
                 {seachingBarProfileList.map((profile) => (
                   <div key={profile.id}>
-                    <div className="text-sm" onClick={()=>navigate(`/users/${profile.id}`)}>{profile.first_name} {profile.last_name}({profile.username})</div>
+                    <div className="text-sm" onClick={()=>handleLinkPublicProfile(profile.id)}>{profile.first_name} {profile.last_name} ({profile.username})</div>
                     <Separator className="my-2" />
                   </div>
                 ))}
@@ -99,7 +108,7 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
             </ScrollArea>
           )}
           {isOpen && !isLoading && seachingBarProfileList.length === 0 && (
-            <ScrollArea className="h-72 w-48 rounded-md border">
+            <ScrollArea className="h-72 rounded-md border fixed top-26 left-0 z-99 bg-white">
               <div className="p-4">
                 <h4 className="mb-4 text-sm leading-none font-medium">Search results</h4>
                   <div>

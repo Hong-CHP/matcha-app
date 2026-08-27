@@ -34,5 +34,5 @@ export async function getSeachingBarProfiles(
     token: string,
     target: string
 ): Promise<SearchingBarProfile[]> {
-    return apiGet<SearchingBarProfile[]>(`/discovery/search-list?=${encodeURIComponent(target)}`, {token})
+    return apiGet<SearchingBarProfile[]>(`/discovery/search-list?target=${encodeURIComponent(target)}`, {token})
 }
