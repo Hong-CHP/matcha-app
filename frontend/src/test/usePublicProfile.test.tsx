@@ -5,8 +5,8 @@ import { describe, it, expect } from 'vitest'
 import { server } from './server'
 import { http, HttpResponse } from 'msw'
 import { renderHook, waitFor } from '@testing-library/react'
-import { usePublicProfile } from '../users/usePublicProfile'
 import { authWrapper, makeAuthValue } from './renderWithAuth'
+import { usePublicProfile } from '../users/usePublicProfile'
 
 const PUBLIC_PROFILE_URL = `${API_BASE_URL}/users/:id`
 const RELATIONSHIP_URL = `${API_BASE_URL}/social/relationship/:id`

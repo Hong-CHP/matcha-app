@@ -31,13 +31,13 @@ import type { reportInputValue } from "@/schemas/social"
 import { useAuth } from "@/auth/useAuth"
 import { resolveErrorMessage } from "@/i18n/errors"
 import * as socialApi from "@/api/social"
-import { useVisiteTracker } from "@/social/useVisitTracker"
+import { useVisitTracker } from "@/social/useVisitTracker"
 
 function PublicProfilePage() {
     const { accessToken, logout}  = useAuth()
     const { userId } = useParams()
-    const { visitError } = useVisiteTracker(userId ? Number(userId) : null)
     const {relationship, publicProfile, fetchPublicProfile, profileAvatar, isLoading, serverError} = usePublicProfile(Number(userId))
+    const { visitError } = useVisitTracker(userId ? Number(userId) : null)
     const {like, unlike, serverError: likeError} = useLikes()
     const {block, unblock, serverError: blockError} = useBlock()
     const [reportValue, setReportValue] = useState<reportInputValue | null>(null)

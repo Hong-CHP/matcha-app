@@ -4,7 +4,7 @@ import * as socialApi from "@/api/social"
 import { ApiError } from "@/api/client"
 import { resolveErrorMessage } from "@/i18n/errors"
 
-export function useVisiteTracker(targetId: number | null) {
+export function useVisitTracker(targetId: number | null) {
     const { accessToken, logout}  = useAuth()
     const [visitError, setVisitError] = useState<string | null>(null)
     const visitedRef = useRef<number | null>(null)
