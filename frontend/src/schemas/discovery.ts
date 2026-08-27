@@ -19,7 +19,6 @@ export const searchQueryParamsSchema = suggestQueryParamsSchema.extend({
     tag_ids: z.array(z.number().int()).default([])
 })
 
-
 export type BasicQueryParamsValues = z.infer<typeof basicQueryParamsSchema>
 export type SuggestQueryParamsValues = z.infer<typeof suggestQueryParamsSchema>
 export type SearchQueryParamsValues = z.infer<typeof searchQueryParamsSchema>

@@ -10,3 +10,10 @@ export type DiscoveryProfile = {
     location_label: string
     liked_by_me: boolean
 }
+
+export type SearchingBarProfile = {
+    id: number
+    username: string
+    first_name: string
+    last_name: string
+}
