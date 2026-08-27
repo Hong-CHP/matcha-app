@@ -60,3 +60,10 @@ class ViewerContext(BaseModel):
     sexual_preference: Optional[Literal["man", "woman", "bisexual"]] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+
+
+class SearchingBarProfile(BaseModel):
+    id: int
+    username: str
+    first_name: str
+    last_name: str

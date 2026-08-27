@@ -9,6 +9,7 @@ from modules.discovery.schemas import (
     DiscoveryProfileCard,
     SuggestQueryParams,
     SearchQueryParams,
+    SearchingBarProfile
 )
 
 discovery_router = APIRouter(prefix="/discovery", tags=["discovery"])
@@ -36,3 +37,12 @@ async def search_profiles(
     service: DiscoveryService = Depends(get_discovery_service),
 ) -> List[DiscoveryProfileCard]:
     return await service.search(current_user_id, params)
+
+
+@discovery_router.get("/search-list", response_model=List[SearchingBarProfile])
+async def get_seaching_bar_profiles(
+    target: str,
+    current_user_id: int = Depends(get_current_user_id_and_touch),
+    service: DiscoveryService = Depends(get_discovery_service),
+) -> List[SearchingBarProfile]:
+    return await service.get_seaching_bar_profiles(target)

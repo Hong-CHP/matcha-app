@@ -1,4 +1,4 @@
-import type { DiscoveryProfile } from "@/types/discovery";
+import type { DiscoveryProfile, SearchingBarProfile } from "@/types/discovery";
 import { apiGet } from "./client";
 import { _ZodString } from "zod";
 import type { SearchQueryParamsValues, SuggestQueryParamsValues } from "@/schemas/discovery";
@@ -28,4 +28,11 @@ export async function getSearchProfiles(
     params: SearchQueryParamsValues
 ): Promise<DiscoveryProfile[]> {
     return apiGet<DiscoveryProfile[]>(`/discovery/search${toQueryString(params)}`, {token})
+}
+
+export async function getSeachingBarProfiles(
+    token: string,
+    target: string
+): Promise<SearchingBarProfile[]> {
+    return apiGet<SearchingBarProfile[]>(`/discovery/search-list?=${encodeURIComponent(target)}`, {token})
 }

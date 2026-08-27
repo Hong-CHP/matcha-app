@@ -10,6 +10,7 @@ from modules.discovery.schemas import (
     SuggestQueryParams,
     SearchQueryParams,
     ViewerContext,
+    SearchingBarProfile,
 )
 
 _ALLOWED_SORTS = frozenset({"age", "distance", "fame", "common_tags"})
@@ -200,3 +201,10 @@ class DiscoveryService:
             limit=limit,
             offset=offset,
         )
+
+
+    async def get_seaching_bar_profiles(
+            self,
+            target: str
+    ) -> List[SearchingBarProfile]:
+        return await self.repository.get_seaching_bar_profiles(target)

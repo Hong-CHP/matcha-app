@@ -4,6 +4,7 @@ from modules.discovery.schemas import (
     DiscoveryProfileCard,
     DiscoveryQuery,
     ViewerContext,
+    SearchingBarProfile
 )
 
 # Earth radius km for Haversine.
@@ -156,3 +157,19 @@ class DiscoveryRepository:
             query.offset,
         )
         return [DiscoveryProfileCard.model_validate(dict(r)) for r in rows]
+
+
+    async def get_seaching_bar_profiles(
+            self,
+            target: str
+    ) -> Optional[List[SearchingBarProfile]]:
+        pattern = f"%{target}%"
+        rows = await self.connection.fetch(
+                """
+                  SELECT *
+                  FROM users
+                  WHERE username ILIKE $1 OR first_name ILIKE $1 OR last_name ILIKE $1;
+                """,
+                pattern
+              )
+        return [SearchingBarProfile.model_validate(dict(r)) for r in rows]

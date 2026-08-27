@@ -12,6 +12,8 @@ import { ApiError } from "@/api/client"
 import { resolveErrorMessage } from "@/i18n/errors"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import type { SearchingBarProfile } from "@/types/discovery"
+import { useNavigate } from "react-router-dom"
 
 export function SearchForm({ ...props }: React.ComponentProps<"form">) {
   const { accessToken, logout } = useAuth()
@@ -22,6 +24,7 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
   const [isLoading, setIsLoading] = useState(false)
   const requestIdRef = useRef(0)
   const containerRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
 
   useEffect(()=>{
     if (!accessToken) return
@@ -30,6 +33,7 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
     if (trimmed.length === 0) {
       setInputValue("")
       setSeachingBarProfileList([])
+      setIsOpen(false)
       return
     }
     setIsLoading(true)
@@ -39,11 +43,12 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
         const result = await discoveryApi.getSeachingBarProfiles(accessToken, trimmed)
         if (currentRequestId === requestIdRef.current) {
           setSeachingBarProfileList(result)
-          setIsOpen(p=>!p)
+          setIsOpen(true)
         }
       } catch (err) {
         if (err instanceof ApiError) {
           setServerError(resolveErrorMessage(err.code, err.message))
+          setSeachingBarProfileList([])
           if (err.code === "USER_NOT_FOUND")
             logout()
         }
@@ -56,8 +61,18 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
     return () => clearTimeout(timer)
   }, [accessToken, logout, inputValue])
 
+  useEffect(()=>{
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return ()=>document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
   return (
-    <form {...props}>
+    <form {...props} onSubmit={(e) => e.preventDefault()}>
       <SidebarGroup className="py-0" ref={containerRef}>
         <SidebarGroupContent className="relative">
           <Label htmlFor="search" className="sr-only">
@@ -76,7 +91,7 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
                 <h4 className="mb-4 text-sm leading-none font-medium">Search results</h4>
                 {seachingBarProfileList.map((profile) => (
                   <div key={profile.id}>
-                    <div className="text-sm">{profile.first_name} {profile.last_name}(profile.username)</div>
+                    <div className="text-sm" onClick={()=>navigate(`/users/${profile.id}`)}>{profile.first_name} {profile.last_name}({profile.username})</div>
                     <Separator className="my-2" />
                   </div>
                 ))}
@@ -88,7 +103,7 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
               <div className="p-4">
                 <h4 className="mb-4 text-sm leading-none font-medium">Search results</h4>
                   <div>
-                    <div className="text-sm">User is not exists.</div>
+                    <div className="text-sm">{serverError ? serverError : "User is not exists."}</div>
                   </div>
               </div>
             </ScrollArea>
