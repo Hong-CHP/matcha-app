@@ -41,7 +41,7 @@ export function usePublicProfile(target_id: number) {
 
     useEffect(()=>{
         fetchPublicProfile(target_id)
-    }, [fetchPublicProfile])
+    }, [fetchPublicProfile, target_id])
 
     return {relationship, publicProfile, fetchPublicProfile, profileAvatar, isLoading, serverError}
 }

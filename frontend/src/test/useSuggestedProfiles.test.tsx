@@ -6,21 +6,22 @@ import useSuggestedProfiles from '../discovery/useSuggestedProfiles'
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { authWrapper, makeAuthValue } from './renderWithAuth'
 import { toQueryString } from '../api/discovery'
+import {type DiscoveryProfile} from '../types/discovery'
 
 const SUGGEST_URL = `${API_BASE_URL}/discovery/suggest`
 
-function makeProfile(overrides: Partial<Record<string, unknown>> = {}) {
+function makeProfile(overrides: Partial<DiscoveryProfile> = {}): DiscoveryProfile {
     return {
         id: 1,
         username: 'alice',
         first_name: 'Alice',
         last_name: 'A',
         age: 25,
+        gender: 'female',
         fame_rating: 80,
-        distance_km: 3,
-        common_tags_count: 2,
-        profile_photo_url: null,
+        commun_tags_count: 2,
         location_label: 'Paris',
+        liked_by_me: false,
         ...overrides,
     }
 }
