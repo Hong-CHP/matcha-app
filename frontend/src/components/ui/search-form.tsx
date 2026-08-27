@@ -83,42 +83,44 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
   return (
     <form {...props} onSubmit={(e) => e.preventDefault()}>
       <SidebarGroup className="py-0" ref={containerRef}>
-        <SidebarGroupContent className="relative">
-          <Label htmlFor="search" className="sr-only">
-            Search
-          </Label>
-          <SidebarInput
-            id="search"
-            placeholder="Searching for the one..."
-            className="pl-8 pr-20"
-            value={inputValue ?? ""}
-            onChange={e=>setInputValue(e.target.value)}
-          />
-          {isOpen && seachingBarProfileList.length > 0 && (
-            <ScrollArea className="h-72 rounded-md border fixed top-26 left-0 z-99 bg-white">
-              <div className="p-4">
-                <h4 className="mb-4 text-sm leading-none font-medium">Search results</h4>
-                {seachingBarProfileList.map((profile) => (
-                  <div key={profile.id}>
-                    <div className="text-sm" onClick={()=>handleLinkPublicProfile(profile.id)}>{profile.first_name} {profile.last_name} ({profile.username})</div>
-                    <Separator className="my-2" />
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          )}
-          {isOpen && !isLoading && seachingBarProfileList.length === 0 && (
-            <ScrollArea className="h-72 rounded-md border fixed top-26 left-0 z-99 bg-white">
-              <div className="p-4">
-                <h4 className="mb-4 text-sm leading-none font-medium">Search results</h4>
-                  <div>
-                    <div className="text-sm">{serverError ? serverError : "User is not exists."}</div>
-                  </div>
-              </div>
-            </ScrollArea>
-          )}
-          <SearchIcon className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 opacity-50 select-none" />
-        </SidebarGroupContent>
+        <div className="relative">
+          <SidebarGroupContent>
+            <Label htmlFor="search" className="sr-only">
+              Search
+            </Label>
+            <SidebarInput
+              id="search"
+              placeholder="Searching for the one..."
+              className="pl-8 pr-20"
+              value={inputValue ?? ""}
+              onChange={e=>setInputValue(e.target.value)}
+            />
+            {isOpen && seachingBarProfileList.length > 0 && (
+              <ScrollArea className="absolute top-20 left-0 mt-2 z-50 h-62 rounded-md border bg-white">
+                <div className="p-4">
+                  <h4 className="mb-4 text-sm leading-none font-medium">Search results</h4>
+                  {seachingBarProfileList.map((profile) => (
+                    <div key={profile.id}>
+                      <div className="text-sm" onClick={()=>handleLinkPublicProfile(profile.id)}>{profile.first_name} {profile.last_name} ({profile.username})</div>
+                      <Separator className="my-2" />
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+            {isOpen && !isLoading && seachingBarProfileList.length === 0 && (
+              <ScrollArea className="absolute top-20 left-0 mt-2 z-50 h-62 rounded-md border bg-white">
+                <div className="p-4">
+                  <h4 className="mb-4 text-sm leading-none font-medium">Search results</h4>
+                    <div>
+                      <div className="text-sm">{serverError ? serverError : "User is not exists."}</div>
+                    </div>
+                </div>
+              </ScrollArea>
+            )}
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 opacity-50 select-none" />
+          </SidebarGroupContent>
+        </div>
       </SidebarGroup>
     </form>
   )
